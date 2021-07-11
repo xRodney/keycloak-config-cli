@@ -61,7 +61,7 @@ public class KeycloakProvider implements AutoCloseable {
     private String version;
 
     @Autowired
-    private KeycloakProvider(KeycloakConfigProperties properties) {
+    public KeycloakProvider(KeycloakConfigProperties properties) {
         this.properties = properties;
         this.resteasyClient = ResteasyUtil.getClient(
                 !this.properties.isSslVerify(),
