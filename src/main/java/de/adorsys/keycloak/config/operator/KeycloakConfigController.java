@@ -20,19 +20,20 @@
 
 package de.adorsys.keycloak.config.operator;
 
+import de.adorsys.keycloak.config.operator.spec.SchemaSpec;
 import de.adorsys.keycloak.config.operator.spec.SchemaStatus;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.*;
+import io.javaoperatorsdk.operator.api.reconciler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 
-import static io.javaoperatorsdk.operator.api.Controller.NO_FINALIZER;
+import java.util.Base64;
 
-@Controller(finalizerName = NO_FINALIZER)
-@Profile("operator")
-public class KeycloakConfigController implements ResourceController<KeycloakConfig> {
+import static io.javaoperatorsdk.operator.api.reconciler.Constants.NO_FINALIZER;
+
+@ControllerConfiguration(finalizerName = NO_FINALIZER)
+public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
     public static final String KIND = "SchemaSpec";
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
 
@@ -43,30 +44,47 @@ public class KeycloakConfigController implements ResourceController<KeycloakConf
     }
 
     @Override
-    public DeleteControl deleteResource(KeycloakConfig resource, Context<KeycloakConfig> context) {
+    public DeleteControl cleanup(KeycloakConfig resource, Context context) {
         log.info("Execution deleteResource for: {}", resource.getMetadata().getName());
-        return DeleteControl.DEFAULT_DELETE;
+        return DeleteControl.defaultDelete();
     }
 
     @Override
-    public UpdateControl<KeycloakConfig> createOrUpdateResource(KeycloakConfig resource, Context<KeycloakConfig> context) {
+    public UpdateControl<KeycloakConfig> reconcile(KeycloakConfig resource, Context context) {
         try {
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
+            SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
+            SchemaSpec.SecretRef secretRef = keycloakConnection.getCredentialSecret();
+
             Secret credentialSecret = kubernetesClient
                     .secrets()
-                    .inNamespace(resource.getMetadata().getNamespace())
-                    .withName(resource.getSpec().getKeycloakConnection().getCredentialSecret())
+                    .inNamespace(secretRef.getNamespace() == null ? resource.getMetadata().getNamespace() : secretRef.getNamespace())
+                    .withName(secretRef.getName())
                     .get();
+
+            if (credentialSecret == null) {
+                throw new IllegalStateException("The linked credential secret does not exist");
+            }
+
+            log.info("Successfully read the credential secret");
+            String password = credentialSecret.getData().get(secretRef.getKey());
+
+            if (password == null) {
+                throw new IllegalStateException("The linked credential secret does not contain password");
+            }
+            password = new String(Base64.getDecoder().decode(password));
+            log.info("Successfully read password from the credential secret");
 
             // runKeycloakConfig(resource, credentialSecret);
 
             SchemaStatus status = new SchemaStatus();
             status.setState(SchemaStatus.State.SUCCESS);
             status.setError(false);
-            status.setMessage(null);
+            status.setMessage("Successful import");
+            resource.setStatus(status);
 
-            return UpdateControl.updateStatusSubResource(resource);
+            return UpdateControl.updateStatus(resource);
         } catch (Exception e) {
             log.error("Error while execute createOrUpdateResource", e);
 
@@ -76,7 +94,7 @@ public class KeycloakConfigController implements ResourceController<KeycloakConf
             status.setMessage(e.getMessage());
             resource.setStatus(status);
 
-            return UpdateControl.updateStatusSubResource(resource);
+            return UpdateControl.updateStatus(resource);
         }
     }
 

@@ -20,21 +20,26 @@
 
 package de.adorsys.keycloak.config.operator.configuration;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import io.javaoperatorsdk.operator.Operator;
+import io.javaoperatorsdk.operator.api.config.ExecutorServiceManager;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Service;
 
-@Configuration
-@Profile("operator")
-public class OperatorConfig {
-    private static final Logger logger = LoggerFactory.getLogger(OperatorConfig.class);
+import java.util.concurrent.TimeUnit;
 
-    @Bean
-    public KubernetesClient kubernetesClient() {
-        return new DefaultKubernetesClient();
+/**
+ * Not sure why ths is needed, but without this the operator never starts and the app just exits
+ */
+@Service
+public class OperatorRunner implements CommandLineRunner {
+    private final Operator operator;
+
+    public OperatorRunner(Operator operator) {
+        this.operator = operator;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        ExecutorServiceManager.instance().executorService().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     }
 }

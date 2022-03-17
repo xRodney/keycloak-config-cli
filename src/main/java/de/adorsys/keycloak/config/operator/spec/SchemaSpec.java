@@ -22,6 +22,7 @@ package de.adorsys.keycloak.config.operator.spec;
 
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 
+import java.util.Map;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -29,7 +30,7 @@ public class SchemaSpec {
     @NotNull
     private KeycloakConfigPropertiesSpec keycloakConnection;
     @NotNull
-    private String realmConfiguration;
+    private Map<String, Object> realm;
 
     public KeycloakConfigPropertiesSpec getKeycloakConnection() {
         return keycloakConnection;
@@ -39,12 +40,12 @@ public class SchemaSpec {
         this.keycloakConnection = keycloakConnection;
     }
 
-    public String getRealmConfiguration() {
-        return realmConfiguration;
+    public Map<String, Object> getRealm() {
+        return realm;
     }
 
-    public void setRealmConfiguration(String realmConfiguration) {
-        this.realmConfiguration = realmConfiguration;
+    public void setRealm(Map<String, Object> realm) {
+        this.realm = realm;
     }
 
     public static class KeycloakConfigPropertiesSpec {
@@ -55,7 +56,7 @@ public class SchemaSpec {
         @NotNull
         private String url;
         @NotNull
-        private String credentialSecret;
+        private SecretRef credentialSecret;
         @NotBlank
         private String grantType = "password";
         @NotNull
@@ -87,11 +88,11 @@ public class SchemaSpec {
             this.url = url;
         }
 
-        public String getCredentialSecret() {
+        public SecretRef getCredentialSecret() {
             return credentialSecret;
         }
 
-        public void setCredentialSecret(String credentialSecret) {
+        public void setCredentialSecret(SecretRef credentialSecret) {
             this.credentialSecret = credentialSecret;
         }
 
@@ -117,6 +118,38 @@ public class SchemaSpec {
 
         public void setAvailabilityCheck(KeycloakConfigProperties.KeycloakAvailabilityCheck availabilityCheck) {
             this.availabilityCheck = availabilityCheck;
+        }
+    }
+
+    public static class SecretRef {
+        @NotNull
+        private String name;
+        private String namespace;
+        @NotNull
+        private String key;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getNamespace() {
+            return namespace;
+        }
+
+        public void setNamespace(String namespace) {
+            this.namespace = namespace;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
         }
     }
 }

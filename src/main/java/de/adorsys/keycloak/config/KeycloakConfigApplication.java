@@ -22,27 +22,27 @@ package de.adorsys.keycloak.config;
 
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
-import io.javaoperatorsdk.operator.api.Controller;
+import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties({KeycloakConfigProperties.class, ImportConfigProperties.class})
 @ComponentScan(includeFilters = {
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class)
+        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = ControllerConfiguration.class)
 })
+@EnableAsync
+@EnableScheduling
 public class KeycloakConfigApplication {
     public static void main(String[] args) {
         // https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-application-exit
         System.exit(
                 SpringApplication.exit(SpringApplication.run(KeycloakConfigApplication.class, args))
         );
-    }
-
-    public static void run(String[] args) {
-        SpringApplication.run(KeycloakConfigApplication.class, args);
     }
 }

@@ -20,9 +20,9 @@
 
 package de.adorsys.keycloak.config.mock;
 
-import de.adorsys.keycloak.config.configuration.TestConfiguration;
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
 import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.operator.configuration.TestConfiguration;
 import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.test.util.KeycloakMock;

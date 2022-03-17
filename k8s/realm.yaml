@@ -1,0 +1,12 @@
+apiVersion: keycloak-config-cli.adorsys.com/v1
+kind: KeycloakConfig
+metadata:
+  name: dusanuv-realm
+spec:
+  keycloakConnection:
+    sslVerify: false
+    url: "http://example.com/auth"
+    credentialSecret:
+      name: global-keycloak
+      key: KEYCLOAK_PASSWORD
+  realm: {}
