@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package de.adorsys.keycloak.config.operator.configuration;
+package de.adorsys.keycloak.config.operator;
 
 import io.javaoperatorsdk.operator.Operator;
 import io.javaoperatorsdk.operator.api.config.ExecutorServiceManager;

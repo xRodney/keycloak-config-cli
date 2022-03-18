@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.StringJoiner;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -149,6 +150,25 @@ public class KeycloakConfigProperties {
         return readTimeout;
     }
 
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", KeycloakConfigProperties.class.getSimpleName() + "[", "]")
+                .add("loginRealm='" + loginRealm + "'")
+                .add("clientId='" + clientId + "'")
+                .add("version='" + version + "'")
+                .add("url=" + url)
+                .add("user='" + user + "'")
+                .add("password='" + password + "'")
+                .add("clientSecret='" + clientSecret + "'")
+                .add("grantType='" + grantType + "'")
+                .add("sslVerify=" + sslVerify)
+                .add("httpProxy=" + httpProxy)
+                .add("connectTimeout=" + connectTimeout)
+                .add("readTimeout=" + readTimeout)
+                .add("availabilityCheck=" + availabilityCheck)
+                .toString();
+    }
+
     public static class KeycloakAvailabilityCheck {
         @NotNull
         private final boolean enabled;
@@ -176,6 +196,15 @@ public class KeycloakConfigProperties {
 
         public Duration getRetryDelay() {
             return retryDelay;
+        }
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", KeycloakAvailabilityCheck.class.getSimpleName() + "[", "]")
+                    .add("enabled=" + enabled)
+                    .add("timeout=" + timeout)
+                    .add("retryDelay=" + retryDelay)
+                    .toString();
         }
     }
 }

@@ -52,6 +52,8 @@ public class SchemaSpec {
         @NotBlank
         private String loginRealm = "master";
         @NotBlank
+        private String user = "admin";
+        @NotBlank
         private String clientId = "admin-cli";
         @NotNull
         private String url;
@@ -70,6 +72,14 @@ public class SchemaSpec {
 
         public void setLoginRealm(String loginRealm) {
             this.loginRealm = loginRealm;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
         }
 
         public String getClientId() {

@@ -20,14 +20,22 @@
 
 package de.adorsys.keycloak.config.operator;
 
+import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.operator.scope.RealmImportScope;
 import de.adorsys.keycloak.config.operator.spec.SchemaSpec;
 import de.adorsys.keycloak.config.operator.spec.SchemaStatus;
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
+import de.adorsys.keycloak.config.provider.KeycloakProvider;
+import de.adorsys.keycloak.config.service.RealmImportService;
+import de.adorsys.keycloak.config.util.CloneUtil;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Base64;
 
 import static io.javaoperatorsdk.operator.api.reconciler.Constants.NO_FINALIZER;
@@ -38,9 +46,14 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
 
     private final KubernetesClient kubernetesClient;
+    private final RealmImportService realmImportService;
+    private final KeycloakConfigProperties keycloakConfigProperties;
 
-    public KeycloakConfigController(KubernetesClient kubernetesClient) {
+    public KeycloakConfigController(KubernetesClient kubernetesClient,
+                                    RealmImportService realmImportService, KeycloakConfigProperties keycloakConfigProperties) {
         this.kubernetesClient = kubernetesClient;
+        this.realmImportService = realmImportService;
+        this.keycloakConfigProperties = keycloakConfigProperties;
     }
 
     @Override
@@ -55,26 +68,14 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
             SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
-            SchemaSpec.SecretRef secretRef = keycloakConnection.getCredentialSecret();
+            String password = readPassword(keycloakConnection, resource.getMetadata().getNamespace());
 
-            Secret credentialSecret = kubernetesClient
-                    .secrets()
-                    .inNamespace(secretRef.getNamespace() == null ? resource.getMetadata().getNamespace() : secretRef.getNamespace())
-                    .withName(secretRef.getName())
-                    .get();
-
-            if (credentialSecret == null) {
-                throw new IllegalStateException("The linked credential secret does not exist");
+            try (RealmImportScope scope = RealmImportScope.runInScope()) {
+                KeycloakProvider provider = new KeycloakProvider(convert(keycloakConnection, password));
+                scope.put("scopedTarget.keycloakProvider", provider);
+                RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
+                realmImportService.doImport(realmImport);
             }
-
-            log.info("Successfully read the credential secret");
-            String password = credentialSecret.getData().get(secretRef.getKey());
-
-            if (password == null) {
-                throw new IllegalStateException("The linked credential secret does not contain password");
-            }
-            password = new String(Base64.getDecoder().decode(password));
-            log.info("Successfully read password from the credential secret");
 
             // runKeycloakConfig(resource, credentialSecret);
 
@@ -96,6 +97,50 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
 
             return UpdateControl.updateStatus(resource);
         }
+    }
+
+    private KeycloakConfigProperties convert(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection,
+                                             String password) throws MalformedURLException {
+        return new KeycloakConfigProperties(
+                keycloakConnection.getLoginRealm(),
+                keycloakConnection.getClientId(),
+                keycloakConfigProperties.getVersion(),
+                new URL(keycloakConnection.getUrl()),
+                keycloakConnection.getUser(),
+                password,
+                null,
+                keycloakConnection.getGrantType(),
+                keycloakConnection.isSslVerify(),
+                keycloakConfigProperties.getHttpProxy(),
+                keycloakConfigProperties.getAvailabilityCheck(),
+                keycloakConfigProperties.getConnectTimeout(),
+                keycloakConfigProperties.getReadTimeout()
+        );
+    }
+
+    private String readPassword(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection, String namespace) {
+        SchemaSpec.SecretRef secretRef = keycloakConnection.getCredentialSecret();
+
+        Secret credentialSecret = kubernetesClient
+                .secrets()
+                .inNamespace(secretRef.getNamespace() == null ? namespace : secretRef.getNamespace())
+                .withName(secretRef.getName())
+                .get();
+
+        if (credentialSecret == null) {
+            throw new IllegalStateException("The linked credential secret does not exist");
+        }
+
+        log.info("Successfully read the credential secret");
+        String password = credentialSecret.getData().get(secretRef.getKey());
+
+        if (password == null) {
+            throw new IllegalStateException("The linked credential secret does not contain password");
+        }
+        password = new String(Base64.getDecoder().decode(password));
+        log.info("Successfully read password from the credential secret");
+
+        return password;
     }
 
     /*
