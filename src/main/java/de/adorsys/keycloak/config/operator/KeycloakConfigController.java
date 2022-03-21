@@ -74,16 +74,18 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
                 KeycloakProvider provider = new KeycloakProvider(convert(keycloakConnection, password));
                 scope.put("scopedTarget.keycloakProvider", provider);
                 RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
-                realmImportService.doImport(realmImport);
+
+                String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
+                        ? resource.getStatus().getExternalId() : realmImport.getRealm();
+                realmImportService.doImport(deployedRealm, realmImport);
+
+                SchemaStatus status = new SchemaStatus();
+                status.setState(SchemaStatus.State.SUCCESS);
+                status.setError(false);
+                status.setMessage("Successful import");
+                status.setExternalId(realmImport.getRealm());
+                resource.setStatus(status);
             }
-
-            // runKeycloakConfig(resource, credentialSecret);
-
-            SchemaStatus status = new SchemaStatus();
-            status.setState(SchemaStatus.State.SUCCESS);
-            status.setError(false);
-            status.setMessage("Successful import");
-            resource.setStatus(status);
 
             return UpdateControl.updateStatus(resource);
         } catch (Exception e) {

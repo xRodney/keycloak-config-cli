@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.operator.spec;
 
 public class SchemaStatus {
+    private String externalId;
     private State state = State.UNKNOWN;
     private boolean error;
     private String message;
@@ -47,6 +48,14 @@ public class SchemaStatus {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     public enum State {

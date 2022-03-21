@@ -57,8 +57,8 @@ public class ChecksumService {
         logger.debug("Updated import checksum of realm '{}' to '{}'", realmImport.getRealm(), importChecksum);
     }
 
-    public boolean hasToBeUpdated(RealmImport realmImport) {
-        RealmRepresentation existingRealm = realmRepository.get(realmImport.getRealm());
+    public boolean hasToBeUpdated(String realmName, RealmImport realmImport) {
+        RealmRepresentation existingRealm = realmRepository.get(realmName);
         Map<String, String> customAttributes = existingRealm.getAttributes();
 
         String readChecksum = customAttributes.get(getCustomAttributeKey());

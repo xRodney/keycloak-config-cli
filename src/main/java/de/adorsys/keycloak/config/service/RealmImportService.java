@@ -27,6 +27,7 @@ import de.adorsys.keycloak.config.repository.RealmRepository;
 import de.adorsys.keycloak.config.service.checksum.ChecksumService;
 import de.adorsys.keycloak.config.service.state.StateService;
 import de.adorsys.keycloak.config.util.CloneUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,19 +129,23 @@ public class RealmImportService {
     }
 
     public void doImport(RealmImport realmImport) {
-        boolean realmExists = realmRepository.exists(realmImport.getRealm());
+        doImport(realmImport.getRealm(), realmImport);
+    }
+
+    public void doImport(String realmName, RealmImport realmImport) {
+        boolean realmExists = StringUtils.isNotBlank(realmName) && realmRepository.exists(realmName);
 
         if (realmExists) {
-            updateRealmIfNecessary(realmImport);
+            updateRealmIfNecessary(realmName, realmImport);
         } else {
             createRealm(realmImport);
         }
     }
 
-    private void updateRealmIfNecessary(RealmImport realmImport) {
-        if (importProperties.isForce() || checksumService.hasToBeUpdated(realmImport)) {
+    private void updateRealmIfNecessary(String realmName, RealmImport realmImport) {
+        if (importProperties.isForce() || checksumService.hasToBeUpdated(realmName, realmImport)) {
             setEventsEnabledWorkaround(realmImport);
-            updateRealm(realmImport);
+            updateRealm(realmName, realmImport);
         } else {
             logger.debug(
                     "No need to update realm '{}', import checksum same: '{}'",
@@ -171,16 +176,16 @@ public class RealmImportService {
         configureRealm(realmImport, realm);
     }
 
-    private void updateRealm(RealmImport realmImport) {
-        logger.debug("Updating realm '{}'...", realmImport.getRealm());
+    private void updateRealm(String realmName, RealmImport realmImport) {
+        logger.debug("Updating realm '{}'...", realmName);
 
         RealmRepresentation realm = CloneUtil.deepClone(realmImport, RealmRepresentation.class, ignoredPropertiesForRealmImport);
 
         // The state must be loaded before we update realm to prevent
         // the state erasure by custom attributes from configuration
-        stateService.loadState(realm);
+        stateService.loadState(realmName, realm);
 
-        realmRepository.update(realm);
+        realmRepository.update(realmName, realm);
 
         configureRealm(realmImport, realm);
     }
