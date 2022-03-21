@@ -20,9 +20,9 @@
 
 package de.adorsys.keycloak.config.operator.spec;
 
+import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 
-import java.util.Map;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -30,7 +30,7 @@ public class SchemaSpec {
     @NotNull
     private KeycloakConfigPropertiesSpec keycloakConnection;
     @NotNull
-    private Map<String, Object> realm;
+    private RealmImport realm;
 
     public KeycloakConfigPropertiesSpec getKeycloakConnection() {
         return keycloakConnection;
@@ -40,11 +40,11 @@ public class SchemaSpec {
         this.keycloakConnection = keycloakConnection;
     }
 
-    public Map<String, Object> getRealm() {
+    public RealmImport getRealm() {
         return realm;
     }
 
-    public void setRealm(Map<String, Object> realm) {
+    public void setRealm(RealmImport realm) {
         this.realm = realm;
     }
 

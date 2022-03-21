@@ -108,7 +108,7 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
                 new URL(keycloakConnection.getUrl()),
                 keycloakConnection.getUser(),
                 password,
-                null,
+                "",
                 keycloakConnection.getGrantType(),
                 keycloakConnection.isSslVerify(),
                 keycloakConfigProperties.getHttpProxy(),

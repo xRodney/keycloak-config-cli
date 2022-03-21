@@ -9,4 +9,5 @@ spec:
     credentialSecret:
       name: global-keycloak
       key: KEYCLOAK_PASSWORD
-  realm: {}
+  realm:
+    realm: operator-realm

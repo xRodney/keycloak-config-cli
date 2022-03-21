@@ -148,7 +148,7 @@
 
             <dependency>
                 <groupId>io.fabric8</groupId>
-                <artifactId>crd-generator-apt</artifactId>
+                <artifactId>crd-generator-api</artifactId>
                 <version>${crd-generator-apt.version}</version>
             </dependency>
 
@@ -262,7 +262,7 @@
         <!-- Kubernetes Operator -->
         <dependency>
             <groupId>io.fabric8</groupId>
-            <artifactId>crd-generator-apt</artifactId>
+            <artifactId>crd-generator-api</artifactId>
             <scope>compile</scope>
         </dependency>
 
