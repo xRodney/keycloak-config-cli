@@ -20,10 +20,13 @@
 
 package de.adorsys.keycloak.config.configuration;
 
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.provider.FileComparator;
+import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -47,5 +50,11 @@ public class KeycloakConfigConfiguration {
     @Bean
     public Comparator<File> fileComparator() {
         return new FileComparator();
+    }
+
+    @Bean
+    @Profile("!operator")
+    public KeycloakProvider keycloakProvider(KeycloakConfigProperties properties) {
+        return new KeycloakProvider(properties);
     }
 }

@@ -20,13 +20,15 @@
 
 package de.adorsys.keycloak.config.operator.configuration;
 
+import de.adorsys.keycloak.config.operator.scope.RealmImportScope;
+import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
+
+import static de.adorsys.keycloak.config.operator.scope.ImportScopeConfig.REALM_IMPORT;
 
 @Configuration
 @Profile("operator")
@@ -36,5 +38,12 @@ public class OperatorConfig {
     @Bean
     public KubernetesClient kubernetesClient() {
         return new DefaultKubernetesClient();
+    }
+
+    @Bean
+    @Primary
+    @Scope(value = REALM_IMPORT, proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public KeycloakProvider keycloakProvider() {
+        return new KeycloakProvider(RealmImportScope.getKeycloakProperties());
     }
 }

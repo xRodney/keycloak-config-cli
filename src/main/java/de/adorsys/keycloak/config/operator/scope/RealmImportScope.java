@@ -37,6 +37,7 @@
 package de.adorsys.keycloak.config.operator.scope;
 
 import de.adorsys.keycloak.config.operator.KeycloakConfigController;
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -46,56 +47,45 @@ import org.springframework.lang.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RealmImportScope implements Scope, AutoCloseable {
-    public static final ThreadLocal<Map<String, Object>> THREAD_SCOPE = new NamedThreadLocal<Map<String, Object>>("SimpleThreadScope") {
+    public static final RealmImportScope SINGLETON = new RealmImportScope();
+    private static final ThreadLocal<ImportAttributes> IMPORT_ATTRIBUTES = new NamedThreadLocal<ImportAttributes>("RealmImportScope") {
         @Override
-        protected Map<String, Object> initialValue() {
-            return new HashMap<>();
+        protected ImportAttributes initialValue() {
+            return new ImportAttributes();
         }
     };
-    public static final ThreadLocal<Map<String, Runnable>> DESTRUCTION_CALLBACKS = new NamedThreadLocal<Map<String, Runnable>>(
-            "SimpleThreadScope-callbacks") {
-        @Override
-        protected Map<String, Runnable> initialValue() {
-            return new HashMap<>();
-        }
-    };
+
     private static final Logger logger = LoggerFactory.getLogger(KeycloakConfigController.class);
 
-    public static RealmImportScope runInScope() {
+    public static RealmImportScope runInScope(KeycloakConfigProperties keycloakConfigProperties) {
         closeThreadScope();
-
-        logger.info("runInScope before end: contains keys: {}", THREAD_SCOPE.get().keySet());
-        logger.info("runInScope before end: callback contains keys: {}", DESTRUCTION_CALLBACKS.get().keySet());
-        return new RealmImportScope();
+        IMPORT_ATTRIBUTES.get().keycloakProperties = keycloakConfigProperties;
+        return SINGLETON;
     }
 
     private static void closeThreadScope() {
-        logger.info("close before end: contains keys: {}", THREAD_SCOPE.get().keySet());
-        logger.info("close before end: callbacks contains keys: {}", DESTRUCTION_CALLBACKS.get().keySet());
+        ImportAttributes importAttributes = IMPORT_ATTRIBUTES.get();
+        logger.info("close before end: contains keys: {}", importAttributes.scope.keySet());
+        logger.info("close before end: callbacks contains keys: {}", importAttributes.destructionCallbacks.keySet());
 
-        for (Map.Entry<String, Runnable> entry : DESTRUCTION_CALLBACKS.get().entrySet()) {
-            logger.info("close before end: calling callback: {}", entry.getKey());
-            entry.getValue().run();
-        }
-        DESTRUCTION_CALLBACKS.get().clear();
-        THREAD_SCOPE.get().clear();
-
-        logger.info("close after end: contains keys: {}", THREAD_SCOPE.get().keySet());
-        logger.info("close after end: callbacks contains keys: {}", DESTRUCTION_CALLBACKS.get().keySet());
+        importAttributes.destructionCallbacks.forEach((key, callback) -> {
+            logger.info("close before end: calling callback: {}", key);
+            callback.run();
+        });
+        IMPORT_ATTRIBUTES.remove();
     }
 
-    public void put(String name, Object value) {
-        THREAD_SCOPE.get().put(name, value);
-        if (value instanceof AutoCloseable) {
-            DESTRUCTION_CALLBACKS.get().put(name, () -> safeClose((AutoCloseable) value));
-        }
+    public static KeycloakConfigProperties getKeycloakProperties() {
+        return Objects.requireNonNull(IMPORT_ATTRIBUTES.get().getKeycloakProperties(),
+                "'IMPORT_ATTRIBUTES.get().getKeycloakProperties()' are not set");
     }
 
     @Override
     public Object get(String name, ObjectFactory<?> objectFactory) {
-        Map<String, Object> scope = this.THREAD_SCOPE.get();
+        Map<String, Object> scope = IMPORT_ATTRIBUTES.get().getScope();
         // NOTE: Do NOT modify the following to use Map::computeIfAbsent. For details,
         // see https://github.com/spring-projects/spring-framework/issues/25801.
         Object scopedObject = scope.get(name);
@@ -109,13 +99,13 @@ public class RealmImportScope implements Scope, AutoCloseable {
     @Override
     @Nullable
     public Object remove(String name) {
-        Map<String, Object> scope = this.THREAD_SCOPE.get();
+        Map<String, Object> scope = IMPORT_ATTRIBUTES.get().getScope();
         return scope.remove(name);
     }
 
     @Override
     public void registerDestructionCallback(String name, Runnable callback) {
-        DESTRUCTION_CALLBACKS.get().put(name, callback);
+        IMPORT_ATTRIBUTES.get().getDestructionCallbacks().put(name, callback);
     }
 
     @Override
@@ -134,11 +124,21 @@ public class RealmImportScope implements Scope, AutoCloseable {
         closeThreadScope();
     }
 
-    private static void safeClose(AutoCloseable closeable) {
-        try {
-            closeable.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    private static class ImportAttributes {
+        private final Map<String, Object> scope = new HashMap<>();
+        private final Map<String, Runnable> destructionCallbacks = new HashMap<>();
+        private KeycloakConfigProperties keycloakProperties;
+
+        public Map<String, Object> getScope() {
+            return scope;
+        }
+
+        public Map<String, Runnable> getDestructionCallbacks() {
+            return destructionCallbacks;
+        }
+
+        public KeycloakConfigProperties getKeycloakProperties() {
+            return keycloakProperties;
         }
     }
 }

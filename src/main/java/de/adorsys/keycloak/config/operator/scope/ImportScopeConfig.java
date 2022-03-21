@@ -31,6 +31,6 @@ public class ImportScopeConfig implements BeanFactoryPostProcessor {
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory factory) throws BeansException {
-        factory.registerScope(REALM_IMPORT, new RealmImportScope());
+        factory.registerScope(REALM_IMPORT, RealmImportScope.SINGLETON);
     }
 }

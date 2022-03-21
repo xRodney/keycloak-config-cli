@@ -25,7 +25,6 @@ import de.adorsys.keycloak.config.operator.scope.RealmImportScope;
 import de.adorsys.keycloak.config.operator.spec.SchemaSpec;
 import de.adorsys.keycloak.config.operator.spec.SchemaStatus;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
-import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -70,9 +69,7 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
             SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
             String password = readPassword(keycloakConnection, resource.getMetadata().getNamespace());
 
-            try (RealmImportScope scope = RealmImportScope.runInScope()) {
-                KeycloakProvider provider = new KeycloakProvider(convert(keycloakConnection, password));
-                scope.put("scopedTarget.keycloakProvider", provider);
+            try (RealmImportScope scope = RealmImportScope.runInScope(convert(keycloakConnection, password))) {
                 RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
                 String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null

@@ -33,9 +33,6 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,14 +44,10 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 
-import static de.adorsys.keycloak.config.operator.scope.ImportScopeConfig.REALM_IMPORT;
-
 /**
  * This class exists cause we need to create a single keycloak instance or to close the keycloak before using a new one
  * to avoid a deadlock.
  */
-@Component
-@Scope(value = REALM_IMPORT, proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class KeycloakProvider implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(KeycloakProvider.class);
 
