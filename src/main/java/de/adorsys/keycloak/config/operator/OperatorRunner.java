@@ -22,9 +22,12 @@ package de.adorsys.keycloak.config.operator;
 
 import de.adorsys.keycloak.config.operator.schema.SchemaGenerator;
 import io.javaoperatorsdk.operator.Operator;
+import io.javaoperatorsdk.operator.OperatorException;
 import io.javaoperatorsdk.operator.api.config.ExecutorServiceManager;
+import io.javaoperatorsdk.operator.processing.LifecycleAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
@@ -38,13 +41,14 @@ import java.util.concurrent.TimeUnit;
  * So we use it for schema generation as well.
  */
 @Service
-public class OperatorRunner implements CommandLineRunner {
+public class OperatorRunner implements CommandLineRunner, LifecycleAware {
     private static final Logger log = LoggerFactory.getLogger(OperatorRunner.class);
-    private final Operator operator;
+    private final ObjectProvider<Operator> operatorProvider;
     private final SchemaGenerator schemaGenerator;
+    private Operator operator;
 
-    public OperatorRunner(Operator operator, SchemaGenerator schemaGenerator) {
-        this.operator = operator;
+    public OperatorRunner(ObjectProvider<Operator> operatorProvider, SchemaGenerator schemaGenerator) {
+        this.operatorProvider = operatorProvider;
         this.schemaGenerator = schemaGenerator;
     }
 
@@ -52,6 +56,12 @@ public class OperatorRunner implements CommandLineRunner {
     public void run(String... args) {
         log.info("Generating schema");
         schemaGenerator.generateSchema(Paths.get(""));
+        operator = operatorProvider.getObject();
+        operator.start();
+        runUntilTerminated();
+    }
+
+    private void runUntilTerminated() {
         boolean terminated = false;
 
         ExecutorService executorService = ExecutorServiceManager.instance().executorService();
@@ -63,5 +73,18 @@ public class OperatorRunner implements CommandLineRunner {
                 log.info("Interrupted");
             }
         }
+    }
+
+    @Override
+    public void start() throws OperatorException {
+
+    }
+
+    @Override
+    public void stop() throws OperatorException {
+        if (operator != null) {
+            operator.stop();
+        }
+
     }
 }
