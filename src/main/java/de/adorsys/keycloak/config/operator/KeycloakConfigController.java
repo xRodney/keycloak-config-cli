@@ -37,9 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
 
-import static io.javaoperatorsdk.operator.api.reconciler.Constants.NO_FINALIZER;
-
-@ControllerConfiguration(finalizerName = NO_FINALIZER)
+@ControllerConfiguration
 public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
     public static final String KIND = "SchemaSpec";
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
@@ -57,8 +55,22 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
 
     @Override
     public DeleteControl cleanup(KeycloakConfig resource, Context context) {
-        log.info("Execution deleteResource for: {}", resource.getMetadata().getName());
-        return DeleteControl.defaultDelete();
+        log.info("Execution cleanup for: {}", resource.getMetadata().getName());
+
+        try (RealmImportScope scope = setupScope(resource)) {
+            String deployedRealm = resource.getStatus() != null ? resource.getStatus().getExternalId() : null;
+            if (deployedRealm == null) {
+                log.info("Not deployed? {}", resource.getMetadata().getName());
+            } else {
+                realmImportService.deleteRealm(deployedRealm);
+            }
+            return DeleteControl.defaultDelete();
+
+        } catch (Exception e) {
+            log.error("Error while execute cleanup", e);
+            return DeleteControl.noFinalizerRemoval();
+        }
+
     }
 
     @Override
@@ -66,10 +78,7 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
         try {
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
-            SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
-            String password = readPassword(keycloakConnection, resource.getMetadata().getNamespace());
-
-            try (RealmImportScope scope = RealmImportScope.runInScope(convert(keycloakConnection, password))) {
+            try (RealmImportScope scope = setupScope(resource)) {
                 RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
                 String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
@@ -96,6 +105,16 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
 
             return UpdateControl.updateStatus(resource);
         }
+    }
+
+    private RealmImportScope setupScope(KeycloakConfig resource) throws MalformedURLException {
+        return RealmImportScope.runInScope(getKeycloakConfigProperties(resource));
+    }
+
+    private KeycloakConfigProperties getKeycloakConfigProperties(KeycloakConfig resource) throws MalformedURLException {
+        SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
+        String password = readPassword(keycloakConnection, resource.getMetadata().getNamespace());
+        return convert(keycloakConnection, password);
     }
 
     private KeycloakConfigProperties convert(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection,

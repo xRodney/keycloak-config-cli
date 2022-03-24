@@ -213,4 +213,9 @@ public class RealmImportService {
         stateService.doImport(realmImport);
         checksumService.doImport(realmImport);
     }
+
+    public void deleteRealm(String realmName) {
+        logger.debug("Deleting realm '{}'...", realmName);
+        realmRepository.getResource(realmName).remove();
+    }
 }
