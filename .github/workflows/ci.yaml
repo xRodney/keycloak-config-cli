@@ -63,18 +63,18 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1.14.1
-        if: startsWith(github.event.ref, 'refs/tags/v')
+#        if: startsWith(github.event.ref, 'refs/tags/v')
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Login to Quay.io
-        uses: docker/login-action@v1.14.1
-        if: startsWith(github.event.ref, 'refs/tags/v')
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAYIO_USERNAME }}
-          password: ${{ secrets.QUAYIO_PASSWORD }}
+#      - name: Login to Quay.io
+#        uses: docker/login-action@v1.14.1
+#        if: startsWith(github.event.ref, 'refs/tags/v')
+#        with:
+#          registry: quay.io
+#          username: ${{ secrets.QUAYIO_USERNAME }}
+#          password: ${{ secrets.QUAYIO_PASSWORD }}
 
       - name: Expose GitHub Runtime
         uses: crazy-max/ghaction-github-runtime@v1
@@ -83,7 +83,7 @@ jobs:
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v3.6.2
         with:
-          images: adorsys/keycloak-config-cli,quay.io/adorsys/keycloak-config-cli
+          images: dusanjakub/keycloak-config-cli #,quay.io/adodusanjakubrsys/keycloak-config-cli
           flavor: |
             latest=${{ !contains(github.ref_name, 'rc') && matrix.env.KEYCLOAK_VERSION == steps.latest.outputs.VERSION }}
             suffix=-${{ matrix.env.KEYCLOAK_VERSION }}
@@ -93,7 +93,7 @@ jobs:
             type=semver,event=tag,pattern={{version}}
             type=raw,event=tag,value=latest,enable=${{ !contains(github.ref_name, 'rc') }}
           labels: |
-            maintainer=adorsys GmbH & Co. KG
+            maintainer=Dusan Jakub
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -246,12 +246,8 @@ jobs:
           body: |-
             # CHANGELOG
 
-            * https://github.com/adorsys/keycloak-config-cli/blob/${{ github.ref_name }}/CHANGELOG.md
+            * https://github.com/xRodney/keycloak-config-cli/blob/${{ github.ref_name }}/CHANGELOG.md
 
             ## DockerHub
 
-            * https://hub.docker.com/r/adorsys/keycloak-config-cli/tags?name=${{ github.ref_name }}
-
-            ## Quay.io
-
-            * https://quay.io/repository/adorsys/keycloak-config-cli?tab=tags
+            * https://hub.docker.com/r/xRodney/keycloak-config-cli/tags?name=${{ github.ref_name }}
