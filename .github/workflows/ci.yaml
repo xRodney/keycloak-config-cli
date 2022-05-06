@@ -81,7 +81,7 @@ jobs:
 
       - name: Set up Docker Build Metadata
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v3.6.2
+        uses: crazy-max/ghaction-docker-meta@v4.0.1
         with:
           images: dusanjakub/keycloak-config-cli #,quay.io/adodusanjakubrsys/keycloak-config-cli
           flavor: |
