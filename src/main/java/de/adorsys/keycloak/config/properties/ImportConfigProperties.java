@@ -41,12 +41,6 @@ public class ImportConfigProperties {
     @NotNull
     private final boolean validate;
 
-    @NotNull
-    private final boolean parallel;
-
-    @Valid
-    private final ImportFilesProperties files;
-
     @Valid
     private final ImportVarSubstitutionProperties varSubstitution;
 
@@ -62,14 +56,11 @@ public class ImportConfigProperties {
     @Valid
     private final ImportRemoteStateProperties remoteState;
 
-    public ImportConfigProperties(boolean validate, boolean parallel,
-                                  ImportFilesProperties files, ImportVarSubstitutionProperties varSubstitution,
+    public ImportConfigProperties(boolean validate, ImportVarSubstitutionProperties varSubstitution,
                                   ImportBehaviorsProperties behaviors, ImportCacheProperties cache, ImportManagedProperties managed,
                                   ImportRemoteStateProperties remoteState
     ) {
         this.validate = validate;
-        this.parallel = parallel;
-        this.files = files;
         this.varSubstitution = varSubstitution;
         this.behaviors = behaviors;
         this.cache = cache;
@@ -81,12 +72,9 @@ public class ImportConfigProperties {
         return validate;
     }
 
+    @Deprecated
     public boolean isParallel() {
-        return parallel;
-    }
-
-    public ImportFilesProperties getFiles() {
-        return files;
+        return false;
     }
 
     public ImportVarSubstitutionProperties getVarSubstitution() {

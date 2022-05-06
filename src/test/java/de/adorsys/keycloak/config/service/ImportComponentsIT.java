@@ -702,7 +702,7 @@ class ImportComponentsIT extends AbstractImportIT {
     void shouldNotCreateComponents() throws IOException {
         RealmImport foundImport = getFirstImport("12_update_realm__try-to-create-component.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot create component '.*' in realm 'realmWithSubComponents': .*"));
     }

@@ -217,7 +217,7 @@ class ImportClientScopesIT extends AbstractImportIT {
     void shouldNotUpdateRealmUpdateScopeMappingsWithError() throws IOException {
         RealmImport foundImport = getFirstImport("06_update_realm__try-to-change_clientScope_invalid_protocolMapper.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot update protocolMapper 'my_replaced_protocol_mapper' for clientScope 'my_other_clientScope' in realm 'realmWithClientScopes': .*"));
     }

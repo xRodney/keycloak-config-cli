@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Duration;
+import java.util.Objects;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
@@ -53,25 +54,17 @@ import javax.ws.rs.core.Response;
 public class KeycloakProvider implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(KeycloakProvider.class);
 
-    private final KeycloakConfigProperties properties;
-    private final ResteasyClient resteasyClient;
+    private KeycloakConfigProperties properties;
+    private ResteasyClient resteasyClient;
 
     private Keycloak keycloak;
 
     private String version;
 
-    @Autowired
-    private KeycloakProvider(KeycloakConfigProperties properties) {
-        this.properties = properties;
-        this.resteasyClient = ResteasyUtil.getClient(
-                !this.properties.isSslVerify(),
-                this.properties.getHttpProxy(),
-                this.properties.getConnectTimeout(),
-                this.properties.getReadTimeout()
-        );
-    }
-
     public Keycloak getInstance() {
+        Objects.requireNonNull(properties, "'properties' cannot be null");
+        Objects.requireNonNull(resteasyClient, "'resteasyClient' cannot be null");
+
         if (keycloak == null || keycloak.isClosed()) {
             keycloak = createKeycloak();
 
@@ -79,6 +72,17 @@ public class KeycloakProvider implements AutoCloseable {
         }
 
         return keycloak;
+    }
+
+    public KeycloakProvider configure(KeycloakConfigProperties properties) {
+        this.properties = properties;
+        this.resteasyClient = ResteasyUtil.getClient(
+                !this.properties.isSslVerify(),
+                this.properties.getHttpProxy(),
+                this.properties.getConnectTimeout(),
+                this.properties.getReadTimeout()
+        );
+        return this;
     }
 
     public String getKeycloakVersion() {

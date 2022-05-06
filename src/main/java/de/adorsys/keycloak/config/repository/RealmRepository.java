@@ -75,12 +75,16 @@ public class RealmRepository {
     }
 
     public void update(RealmRepresentation realm) {
+        update(realm.getRealm(), realm);
+    }
+
+    public void update(String realmName, RealmRepresentation realm) {
         try {
-            getResource(realm.getRealm()).update(realm);
+            getResource(realmName).update(realm);
         } catch (WebApplicationException error) {
             String errorMessage = ResponseUtil.getErrorMessage(error);
             throw new KeycloakRepositoryException(
-                    String.format("Cannot update realm '%s': %s", realm.getRealm(), errorMessage),
+                    String.format("Cannot update realm '%s': %s", realmName, errorMessage),
                     error
             );
         }
@@ -104,5 +108,9 @@ public class RealmRepository {
 
     public void removeDefaultOptionalClientScope(String realmName, String scopeId) {
         getResource(realmName).removeDefaultOptionalClientScope(scopeId);
+    }
+
+    public void delete(String realmName) {
+        getResource(realmName).remove();
     }
 }

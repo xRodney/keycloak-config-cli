@@ -425,7 +425,7 @@ class ImportClientsIT extends AbstractImportIT {
         RealmImport foundImport = getFirstImport("07_update_realm__try-to-update_protocol-mapper.json");
 
         if (VersionUtil.lt(KEYCLOAK_VERSION, "11")) {
-            ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+            ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
             assertThat(thrown.getMessage(), matchesPattern(".*Cannot update protocolMapper 'BranchCodeMapper' for client '.*' in realm 'realmWithClients': .*"));
         }
@@ -520,15 +520,15 @@ class ImportClientsIT extends AbstractImportIT {
         ImportProcessingException thrown;
 
         RealmImport foundImport0 = getFirstImport("10.0_update_realm__raise_error_add_authorization_client_bearer_only.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport0));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport0.getRealm(), foundImport0));
         assertThat(thrown.getMessage(), is("Unsupported authorization settings for client 'auth-moped-client' in realm 'realmWithClients': client must be confidential."));
 
         RealmImport foundImport1 = getFirstImport("10.1_update_realm__raise_error_add_authorization_client_public.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport1));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport1.getRealm(), foundImport1));
         assertThat(thrown.getMessage(), is("Unsupported authorization settings for client 'auth-moped-client' in realm 'realmWithClients': client must be confidential."));
 
         RealmImport foundImport2 = getFirstImport("10.2_update_realm__raise_error_add_authorization_without_service_account_enabled.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport2));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport2.getRealm(), foundImport2));
         assertThat(thrown.getMessage(), is("Unsupported authorization settings for client 'auth-moped-client' in realm 'realmWithClients': serviceAccountsEnabled must be 'true'."));
 
         /*
@@ -1238,7 +1238,7 @@ class ImportClientsIT extends AbstractImportIT {
     @Order(18)
     void shouldntUpdateWithAnInvalidAuthenticationFlowBindingOverrides() throws IOException {
         RealmImport foundImport = getFirstImport("18_cannot_update_realm__with_invalid_auth-flow-overrides.json");
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport));
+        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), is("Cannot find top-level-flow 'bad value' in realm 'realmWithClients'."));
 
@@ -2264,23 +2264,23 @@ class ImportClientsIT extends AbstractImportIT {
         ImportProcessingException thrown;
 
         RealmImport foundImport0 = getFirstImport("49.0_update_realm_update_authz_policy_for_unknown_type_with_placeholder_realm-management.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport0));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport0.getRealm(), foundImport0));
         assertThat(thrown.getMessage(), is("Cannot resolve 'unknowntype.resource.$unknown-id' in realm 'realmWithClientsForAuthzGrantedPolicies', the type 'unknowntype' is not supported by keycloak-config-cli."));
 
         RealmImport foundImport1 = getFirstImport("49.1_update_realm_update_authz_policy_for_client_with_error_placeholder_realm-management.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport1));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport1.getRealm(), foundImport1));
         assertThat(thrown.getMessage(), is("Cannot find client 'missing-client' in realm 'realmWithClientsForAuthzGrantedPolicies' for 'client.resource.$missing-client'"));
 
         RealmImport foundImport2 = getFirstImport("49.2_update_realm_update_authz_policy_for_idp_with_error_placeholder_realm-management.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport2));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport2.getRealm(), foundImport2));
         assertThat(thrown.getMessage(), is("Cannot find identity provider with alias 'missing-provider' in realm 'realmWithClientsForAuthzGrantedPolicies' for 'idp.resource.$missing-provider'"));
 
         RealmImport foundImport3 = getFirstImport("49.3_update_realm_update_authz_policy_for_role_with_error_placeholder_realm-management.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport3));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport3.getRealm(), foundImport3));
         assertThat(thrown.getMessage(), is("Cannot find realm role 'Missing role' in realm 'realmWithClientsForAuthzGrantedPolicies' for 'role.resource.$Missing role'"));
 
         RealmImport foundImport4 = getFirstImport("49.4_update_realm_update_authz_policy_for_group_with_error_placeholder_realm-management.json");
-        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport4));
+        thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport4.getRealm(), foundImport4));
         assertThat(thrown.getMessage(), is("Cannot find group with path 'Missing group' in realm 'realmWithClientsForAuthzGrantedPolicies' for 'group.resource.$Missing group'"));
     }
 
@@ -2293,19 +2293,19 @@ class ImportClientsIT extends AbstractImportIT {
         // will log a warning, but otherwise the import succeeds
 
         RealmImport foundImport0 = getFirstImport("50.0_update_realm_update_authz_policy_for_unknown_type_with_id_realm-management.json");
-        assertDoesNotThrow(() -> realmImportService.doImport(foundImport0));
+        assertDoesNotThrow(() -> realmImportService.doImport(foundImport0.getRealm(), foundImport0));
 
         RealmImport foundImport1 = getFirstImport("50.1_update_realm_update_authz_policy_for_client_with_bad_id_realm-management.json");
-        assertDoesNotThrow(() -> realmImportService.doImport(foundImport1));
+        assertDoesNotThrow(() -> realmImportService.doImport(foundImport1.getRealm(), foundImport1));
 
         RealmImport foundImport2 = getFirstImport("50.2_update_realm_update_authz_policy_for_idp_with_bad_id_realm-management.json");
-        assertDoesNotThrow(() -> realmImportService.doImport(foundImport2));
+        assertDoesNotThrow(() -> realmImportService.doImport(foundImport2.getRealm(), foundImport2));
 
         RealmImport foundImport3 = getFirstImport("50.3_update_realm_update_authz_policy_for_role_with_bad_id_realm-management.json");
-        assertDoesNotThrow(() -> realmImportService.doImport(foundImport3));
+        assertDoesNotThrow(() -> realmImportService.doImport(foundImport3.getRealm(), foundImport3));
 
         RealmImport foundImport4 = getFirstImport("50.4_update_realm_update_authz_policy_for_group_with_bad_id_realm-management.json");
-        assertDoesNotThrow(() -> realmImportService.doImport(foundImport4));
+        assertDoesNotThrow(() -> realmImportService.doImport(foundImport4.getRealm(), foundImport4));
     }
 
     @Test
@@ -2462,7 +2462,7 @@ class ImportClientsIT extends AbstractImportIT {
         // and found import contains custom attributes
         assertThat(foundImport.getAttributes().get("custom"), notNullValue());
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern(".*Cannot create client 'new-client' in realm 'realmWithClients': .*"));
 
@@ -2478,7 +2478,7 @@ class ImportClientsIT extends AbstractImportIT {
         doImport("91.0_update_realm__try-to-update-client.json");
         RealmImport foundImport = getFirstImport("91.1_update_realm__try-to-update-client.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern(".*Cannot update client 'another-client-with-long-description' in realm 'realmWithClients': .*"));
     }
@@ -2488,7 +2488,7 @@ class ImportClientsIT extends AbstractImportIT {
     void shouldNotUpdateRealmInvalidClient() throws IOException {
         RealmImport foundImport = getFirstImport("92_update_realm__invalid-client.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern("clients require client id or name."));
     }

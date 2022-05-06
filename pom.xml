@@ -66,6 +66,7 @@
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-text.version>1.9</commons-text.version>
+        <crd-generator-apt.version>5.12.1</crd-generator-apt.version>
         <failsafe.version>2.4.4</failsafe.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <jackson.version>2.13.2.20220328</jackson.version>
@@ -81,6 +82,8 @@
         <maven-scm-plugin.version>1.12.2</maven-scm-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <mockserver.version>5.13.2</mockserver.version>
+        <operator-framework.version>2.1.4</operator-framework.version>
+        <operator-framework-spring-boot-starter.version>2.3.0</operator-framework-spring-boot-starter.version>
         <pmd-plugin.version>3.16.0</pmd-plugin.version>
         <pmd.version>6.45.0</pmd.version>
         <reproducible-build-maven-plugin.version>0.15</reproducible-build-maven-plugin.version>
@@ -146,6 +149,24 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>crd-generator-api</artifactId>
+                <version>${crd-generator-apt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.javaoperatorsdk</groupId>
+                <artifactId>operator-framework</artifactId>
+                <version>${operator-framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.javaoperatorsdk</groupId>
+                <artifactId>operator-framework-spring-boot-starter</artifactId>
+                <version>${operator-framework-spring-boot-starter.version}</version>
             </dependency>
 
             <dependency>
@@ -241,6 +262,22 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>${logstash-logback-encoder.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Kubernetes Operator -->
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>crd-generator-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.javaoperatorsdk</groupId>
+            <artifactId>operator-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.javaoperatorsdk</groupId>
+            <artifactId>operator-framework-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- TEST -->

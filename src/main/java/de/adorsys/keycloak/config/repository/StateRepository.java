@@ -73,10 +73,11 @@ public class StateRepository {
      * the realm attributes with the realm configuration state values
      * to prevent their removal, when the realm state is updated.
      *
+     * @param realmName
      * @param realmForUpdating the {@link RealmRepresentation} instance which will be synchronized with the Keycloak
      */
-    public void loadCustomAttributes(RealmRepresentation realmForUpdating) {
-        loadCustomAttributes(realmForUpdating.getRealm());
+    public void loadCustomAttributes(String realmName, RealmRepresentation realmForUpdating) {
+        loadCustomAttributes(realmName);
 
         Map<String, String> attributes = realmForUpdating.getAttributes();
 

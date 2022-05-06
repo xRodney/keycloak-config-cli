@@ -124,20 +124,20 @@ public class RealmImportService {
         this.stateService = stateService;
     }
 
-    public void doImport(RealmImport realmImport) {
-        boolean realmExists = realmRepository.exists(realmImport.getRealm());
+    public void doImport(String realmName, RealmImport realmImport) {
+        boolean realmExists = realmRepository.exists(realmName);
 
         if (realmExists) {
-            updateRealmIfNecessary(realmImport);
+            updateRealmIfNecessary(realmName, realmImport);
         } else {
             createRealm(realmImport);
         }
     }
 
-    private void updateRealmIfNecessary(RealmImport realmImport) {
+    private void updateRealmIfNecessary(String realmName, RealmImport realmImport) {
         if (!importProperties.getCache().isEnabled() || checksumService.hasToBeUpdated(realmImport)) {
             setEventsEnabledWorkaround(realmImport);
-            updateRealm(realmImport);
+            updateRealm(realmName, realmImport);
         } else {
             logger.debug(
                     "No need to update realm '{}', import checksum same: '{}'",
@@ -168,16 +168,16 @@ public class RealmImportService {
         configureRealm(realmImport, realm);
     }
 
-    private void updateRealm(RealmImport realmImport) {
+    private void updateRealm(String realmName, RealmImport realmImport) {
         logger.debug("Updating realm '{}'...", realmImport.getRealm());
 
         RealmRepresentation realm = CloneUtil.deepClone(realmImport, RealmRepresentation.class, ignoredPropertiesForRealmImport);
 
         // The state must be loaded before we update realm to prevent
         // the state erasure by custom attributes from configuration
-        stateService.loadState(realm);
+        stateService.loadState(realmName, realm);
 
-        realmRepository.update(realm);
+        realmRepository.update(realmName, realm);
 
         configureRealm(realmImport, realm);
     }
@@ -203,5 +203,9 @@ public class RealmImportService {
 
         stateService.doImport(realmImport);
         checksumService.doImport(realmImport);
+    }
+
+    public void deleteRealm(String realm) {
+        realmRepository.delete(realm);
     }
 }

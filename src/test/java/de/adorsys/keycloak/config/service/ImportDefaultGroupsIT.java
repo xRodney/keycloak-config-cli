@@ -84,7 +84,7 @@ class ImportDefaultGroupsIT extends AbstractImportIT {
     void shouldUpdateRealmAddNonExistSubGroup() throws IOException {
         RealmImport foundImport = getFirstImport("96_update_realm_add_non_exists_default_subgroup.json");
 
-        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> realmImportService.doImport(foundImport));
+        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
 
         assertThat(thrown.getMessage(), is("Unable to add default group '/not-exist'. Does group exists?"));
     }
