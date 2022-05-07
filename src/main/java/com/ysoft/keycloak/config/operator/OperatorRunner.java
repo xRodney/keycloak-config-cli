@@ -22,34 +22,65 @@ package com.ysoft.keycloak.config.operator;
 
 import com.ysoft.keycloak.config.operator.schema.SchemaGenerator;
 import io.javaoperatorsdk.operator.Operator;
-import io.javaoperatorsdk.operator.OperatorException;
-import io.javaoperatorsdk.operator.api.config.ExecutorServiceManager;
-import io.javaoperatorsdk.operator.processing.LifecycleAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.ResourceBundle;
 
 @Service
 public class OperatorRunner implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(OperatorRunner.class);
     private final SchemaGenerator schemaGenerator;
-    private final Operator operator;
+    private final ObjectProvider<Operator> operatorProvider;
 
-    public OperatorRunner(SchemaGenerator schemaGenerator, Operator operator) {
+    public OperatorRunner(SchemaGenerator schemaGenerator, ObjectProvider<Operator> operatorProvider) {
         this.schemaGenerator = schemaGenerator;
-        this.operator = operator;
+        this.operatorProvider = operatorProvider;
     }
 
     @Override
     public void run(String... args) {
-//        log.info("Generating schema");
-//        schemaGenerator.generateSchema(Paths.get(""));
-//        operator = operatorProvider.getObject();
-//        operator.start();
-//        runUntilTerminated();
+        var command = parseArgs(args);
+        command.run();
+    }
+
+    private Runnable parseArgs(String... args) {
+        String command = args.length == 0 ? "" : args[0];
+        switch (command) {
+            case "":
+            case "operator":
+                return new OperatorCommand();
+            case "schema":
+                return new SchemaGeneratorCommand(args);
+            default:
+                throw new IllegalArgumentException(command);
+        }
+    }
+
+    private class SchemaGeneratorCommand implements Runnable {
+        private final Path target;
+
+        private SchemaGeneratorCommand(String... args) {
+            target = args.length < 2 ? Paths.get("") : Paths.get(args[1]);
+        }
+
+        @Override
+        public void run() {
+            schemaGenerator.generateSchema(target);
+        }
+    }
+
+    private class OperatorCommand implements Runnable {
+
+        @Override
+        public void run() {
+            operatorProvider.getObject();
+        }
     }
 }

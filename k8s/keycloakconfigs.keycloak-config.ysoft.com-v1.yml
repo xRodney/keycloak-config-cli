@@ -2,9 +2,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: keycloakconfigs.keycloak-config-cli.adorsys.com
+  name: keycloakconfigs.keycloak-config.ysoft.com
 spec:
-  group: keycloak-config-cli.adorsys.com
+  group: keycloak-config.ysoft.com
   names:
     kind: KeycloakConfig
     plural: keycloakconfigs
@@ -21,8 +21,27 @@ spec:
             properties:
               keycloakConnection:
                 properties:
+                  credentialSecret:
+                    properties:
+                      key:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - key
+                    - name
+                    type: object
                   sslVerify:
                     type: boolean
+                  readTimeout:
+                    properties:
+                      nanos:
+                        type: integer
+                      seconds:
+                        type: integer
+                    type: object
                   availabilityCheck:
                     properties:
                       timeout:
@@ -46,40 +65,91 @@ spec:
                     - enabled
                     - retryDelay
                     type: object
+                  connectTimeout:
+                    properties:
+                      nanos:
+                        type: integer
+                      seconds:
+                        type: integer
+                    type: object
+                  version:
+                    type: string
                   url:
                     type: string
-                  credentialSecret:
-                    properties:
-                      key:
-                        type: string
-                      name:
-                        type: string
-                      namespace:
-                        type: string
-                    required:
-                    - key
-                    - name
-                    type: object
                   loginRealm:
                     type: string
                   grantType:
                     type: string
+                  httpProxy:
+                    properties:
+                      port:
+                        type: integer
+                      path:
+                        type: string
+                      host:
+                        type: string
+                      hashCode:
+                        type: integer
+                      hostAddress:
+                        properties:
+                          holder:
+                            properties:
+                              originalHostName:
+                                type: string
+                              address:
+                                type: integer
+                              hostName:
+                                type: string
+                              family:
+                                type: integer
+                            type: object
+                          canonicalHostName:
+                            type: string
+                        type: object
+                      tempState:
+                        properties:
+                          port:
+                            type: integer
+                          file:
+                            type: string
+                          authority:
+                            type: string
+                          ref:
+                            type: string
+                          host:
+                            type: string
+                          protocol:
+                            type: string
+                          hashCode:
+                            type: integer
+                        type: object
+                      file:
+                        type: string
+                      authority:
+                        type: string
+                      ref:
+                        type: string
+                      handler:
+                        type: object
+                      protocol:
+                        type: string
+                      userInfo:
+                        type: string
+                      query:
+                        type: string
+                    type: object
                   user:
                     type: string
                   clientId:
                     type: string
                 required:
-                - sslVerify
-                - url
                 - credentialSecret
+                - sslVerify
+                - version
+                - url
                 type: object
               realm:
                 properties:
-                  customImport:
-                    properties:
-                      removeImpersonation:
-                        type: boolean
-                    type: object
                   authenticationFlowImports:
                     items:
                       properties:
@@ -118,8 +188,6 @@ spec:
                           type: string
                       type: object
                     type: array
-                  checksum:
-                    type: string
                   webAuthnPolicyAvoidSameAuthenticatorRegister:
                     type: boolean
                   federatedUsers:
@@ -1157,6 +1225,37 @@ spec:
                           type: object
                         type: array
                     type: object
+                  groups:
+                    items:
+                      properties:
+                        attributes:
+                          additionalProperties:
+                            items:
+                              type: string
+                            type: array
+                          type: object
+                        id:
+                          type: string
+                        access:
+                          additionalProperties:
+                            type: boolean
+                          type: object
+                        realmRoles:
+                          items:
+                            type: string
+                          type: array
+                        path:
+                          type: string
+                        clientRoles:
+                          additionalProperties:
+                            items:
+                              type: string
+                            type: array
+                          type: object
+                        name:
+                          type: string
+                      type: object
+                    type: array
                   webAuthnPolicyCreateTimeout:
                     type: integer
                   webAuthnPolicyAttestationConveyancePreference:
@@ -2102,12 +2201,14 @@ spec:
             properties:
               state:
                 enum:
-                - SUCCESS
-                - UNKNOWN
                 - ERROR
+                - UNKNOWN
+                - SUCCESS
                 type: string
               error:
                 type: boolean
+              externalId:
+                type: string
               message:
                 type: string
             type: object

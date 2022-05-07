@@ -1,4 +1,4 @@
-apiVersion: keycloak-config-cli.adorsys.com/v1
+apiVersion: keycloak-config.ysoft.com/v1
 kind: KeycloakConfig
 metadata:
   name: test-realm
