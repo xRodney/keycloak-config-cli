@@ -21,6 +21,7 @@
 package com.ysoft.keycloak.config.operator;
 
 import com.ysoft.keycloak.config.operator.schema.SchemaGenerator;
+import com.ysoft.keycloak.config.operator.spec.KeycloakConfig;
 import io.javaoperatorsdk.operator.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +37,9 @@ import java.util.ResourceBundle;
 @Service
 public class OperatorRunner implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(OperatorRunner.class);
-    private final SchemaGenerator schemaGenerator;
     private final ObjectProvider<Operator> operatorProvider;
 
-    public OperatorRunner(SchemaGenerator schemaGenerator, ObjectProvider<Operator> operatorProvider) {
-        this.schemaGenerator = schemaGenerator;
+    public OperatorRunner(ObjectProvider<Operator> operatorProvider) {
         this.operatorProvider = operatorProvider;
     }
 
@@ -72,6 +71,8 @@ public class OperatorRunner implements CommandLineRunner {
 
         @Override
         public void run() {
+            var schemaGenerator = new SchemaGenerator();
+            schemaGenerator.addResource(KeycloakConfig.class);
             schemaGenerator.generateSchema(target);
         }
     }
