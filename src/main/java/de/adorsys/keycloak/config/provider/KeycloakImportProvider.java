@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package de.adorsys.keycloak.config;
+package de.adorsys.keycloak.config.provider;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -149,7 +149,24 @@ public class KeycloakImportProvider {
             return false;
         }
 
-        return true;
+        if (!this.importConfigProperties.getFiles().isIncludeHiddenFiles() && (file.isHidden() || FileUtils.hasHiddenAncestorDirectory(file))) {
+            return false;
+        }
+
+        PathMatcher pathMatcher = patternResolver.getPathMatcher();
+        return importConfigProperties.getFiles().getExcludes()
+                .stream()
+                .map(pattern -> pattern.startsWith("**") ? "/" + pattern : pattern)
+                .map(pattern -> !pattern.startsWith("/**") ? "/**" + pattern : pattern)
+                .map(pattern -> !pattern.startsWith("/") ? "/" + pattern : pattern)
+                .noneMatch(pattern -> {
+                    boolean match = pathMatcher.match(pattern, file.getPath());
+                    if (match) {
+                        logger.debug("Excluding resource file '{}' (match {})", file.getPath(), pattern);
+                        return true;
+                    }
+                    return false;
+                });
     }
 
     private ImportResource readResource(Resource resource) {

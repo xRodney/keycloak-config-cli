@@ -22,6 +22,7 @@ package de.adorsys.keycloak.config.mock;
 
 import de.adorsys.keycloak.config.AbstractImportTest;
 import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.test.util.KeycloakMock;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,8 @@ import static org.mockserver.model.HttpRequest.request;
 class CookieMockIT extends AbstractImportTest {
     private MockServerClient mockServerClient;
 
+    @Autowired
+    public KeycloakImportProvider keycloakImportProvider;
     @Autowired
     public RealmImportService realmImportService;
 
@@ -71,6 +74,6 @@ class CookieMockIT extends AbstractImportTest {
         });
 
         RealmImport realmImport = getFirstImport("00_create_simple-realm.json");
-        realmImportService.doImport(realmImport.getRealm(), realmImport);
+        realmImportService.doImport(realmImport);
     }
 }

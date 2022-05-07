@@ -124,6 +124,10 @@ public class RealmImportService {
         this.stateService = stateService;
     }
 
+    public void doImport(RealmImport realmImport) {
+        doImport(realmImport.getRealm(), realmImport);
+    }
+
     public void doImport(String realmName, RealmImport realmImport) {
         boolean realmExists = realmRepository.exists(realmName);
 

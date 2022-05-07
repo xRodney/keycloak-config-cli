@@ -83,6 +83,9 @@ class ImportConfigPropertiesTest {
     void shouldPopulateConfigurationProperties() {
         assertThat(properties.isValidate(), is(false));
         assertThat(properties.isParallel(), is(true));
+        assertThat(properties.getFiles().getLocations(), contains("other"));
+        assertThat(properties.getFiles().getExcludes(), contains("exclude1", "exclude2"));
+        assertThat(properties.getFiles().isIncludeHiddenFiles(), is(true));
         assertThat(properties.getVarSubstitution().isEnabled(), is(true));
         assertThat(properties.getVarSubstitution().isNested(), is(false));
         assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));

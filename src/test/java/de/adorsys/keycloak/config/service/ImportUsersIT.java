@@ -335,7 +335,7 @@ class ImportUsersIT extends AbstractImportIT {
     void shouldNotUpdateRealmUserWithNonExistsRole() throws IOException {
         RealmImport foundImport = getFirstImport("07_update_realm_try_to_create_user_invalid_role.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Could not find role 'not_exists' in realm 'realmWithUsers'!"));
     }
@@ -345,7 +345,7 @@ class ImportUsersIT extends AbstractImportIT {
     void shouldNotUpdateRealmUserWithNonExistsGroup() throws IOException {
         RealmImport foundImport = getFirstImport("08_update_realm_try_to_create_user_invalid_group.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport.getRealm(), foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Could not find group '/not_exists' in realm 'realmWithUsers'!"));
     }
