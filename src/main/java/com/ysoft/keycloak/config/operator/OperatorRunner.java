@@ -21,7 +21,6 @@
 package com.ysoft.keycloak.config.operator;
 
 import com.ysoft.keycloak.config.operator.schema.SchemaGenerator;
-import com.ysoft.keycloak.config.operator.spec.KeycloakConfig;
 import io.javaoperatorsdk.operator.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +30,16 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.ResourceBundle;
 
 @Service
 public class OperatorRunner implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(OperatorRunner.class);
     private final ObjectProvider<Operator> operatorProvider;
+    private final SchemaGenerator schemaGenerator;
 
-    public OperatorRunner(ObjectProvider<Operator> operatorProvider) {
+    public OperatorRunner(ObjectProvider<Operator> operatorProvider, SchemaGenerator schemaGenerator) {
         this.operatorProvider = operatorProvider;
+        this.schemaGenerator = schemaGenerator;
     }
 
     @Override
@@ -71,9 +70,7 @@ public class OperatorRunner implements CommandLineRunner {
 
         @Override
         public void run() {
-            var schemaGenerator = new SchemaGenerator();
-            schemaGenerator.addResource(KeycloakConfig.class);
-            schemaGenerator.generateSchema(target);
+            schemaGenerator.run(target);
         }
     }
 
