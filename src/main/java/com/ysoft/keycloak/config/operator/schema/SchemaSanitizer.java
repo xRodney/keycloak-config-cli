@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.CRDGenerator;
 import io.fabric8.crd.generator.CustomResourceInfo;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.sundr.adapter.api.AdapterContext;
-import io.sundr.adapter.api.Adapters;
 import io.sundr.model.ClassRef;
 import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
@@ -86,12 +84,6 @@ public class SchemaSanitizer {
     public void generateSchema(Path outputPath) {
         generator.inOutputDir(outputPath.toAbsolutePath().toFile());
         generator.generate();
-    }
-
-    private void registerSanitizedType(Class<?> clazz) {
-        TypeDef typeDef = Adapters.adaptType(clazz, AdapterContext.getContext());
-        tracker = new VisitedTracker(maxRecursionDepth);
-        registerSanitizedType(typeDef, typeDef.getName());
     }
 
     private TypeDef registerSanitizedType(TypeDef typeDef, String name) {

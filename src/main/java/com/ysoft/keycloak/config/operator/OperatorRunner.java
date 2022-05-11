@@ -22,8 +22,6 @@ package com.ysoft.keycloak.config.operator;
 
 import com.ysoft.keycloak.config.operator.schema.SchemaGenerator;
 import io.javaoperatorsdk.operator.Operator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
@@ -33,7 +31,6 @@ import java.nio.file.Paths;
 
 @Service
 public class OperatorRunner implements CommandLineRunner {
-    private static final Logger log = LoggerFactory.getLogger(OperatorRunner.class);
     private final ObjectProvider<Operator> operatorProvider;
     private final SchemaGenerator schemaGenerator;
 
