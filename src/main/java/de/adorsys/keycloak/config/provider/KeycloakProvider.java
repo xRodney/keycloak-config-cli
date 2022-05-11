@@ -32,19 +32,18 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.Objects;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
 
 /**
  * This class exists because we need to create a single keycloak instance or to close the keycloak before using a new one
@@ -61,6 +60,10 @@ public class KeycloakProvider implements AutoCloseable {
 
     private String version;
 
+    public KeycloakProvider(KeycloakConfigProperties properties) {
+        configure(properties);
+    }
+
     public Keycloak getInstance() {
         Objects.requireNonNull(properties, "'properties' cannot be null");
         Objects.requireNonNull(resteasyClient, "'resteasyClient' cannot be null");
@@ -74,7 +77,7 @@ public class KeycloakProvider implements AutoCloseable {
         return keycloak;
     }
 
-    public KeycloakProvider configure(KeycloakConfigProperties properties) {
+    public final KeycloakProvider configure(KeycloakConfigProperties properties) {
         this.properties = properties;
         this.resteasyClient = ResteasyUtil.getClient(
                 !this.properties.isSslVerify(),

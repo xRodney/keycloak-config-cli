@@ -21,23 +21,17 @@
 package com.ysoft.keycloak.config.operator.controller;
 
 import com.ysoft.keycloak.config.operator.spec.KeycloakConfig;
-import de.adorsys.keycloak.config.model.RealmImport;
-import com.ysoft.keycloak.config.operator.spec.SchemaSpec;
 import com.ysoft.keycloak.config.operator.spec.SchemaStatus;
+import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Base64;
 
 @ControllerConfiguration
 @Component
@@ -48,18 +42,23 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
     private final KubernetesClient kubernetesClient;
     private final KeycloakProvider keycloakProvider;
     private final RealmImportService realmImportService;
+    private final KeycloakConfigProperties keycloakConfigProperties;
 
-    public KeycloakConfigController(KubernetesClient kubernetesClient, KeycloakProvider keycloakProvider, RealmImportService realmImportService) {
+    public KeycloakConfigController(KubernetesClient kubernetesClient,
+                                    KeycloakProvider keycloakProvider,
+                                    RealmImportService realmImportService,
+                                    KeycloakConfigProperties keycloakConfigProperties) {
         this.kubernetesClient = kubernetesClient;
         this.keycloakProvider = keycloakProvider;
         this.realmImportService = realmImportService;
+        this.keycloakConfigProperties = keycloakConfigProperties;
     }
 
     @Override
     public DeleteControl cleanup(KeycloakConfig resource, Context context) {
         log.info("Execution cleanup for: {}", resource.getMetadata().getName());
 
-        try (var provider = keycloakProvider.configure(getKeycloakConfigProperties(resource))) {
+        try {
             String deployedRealm = resource.getStatus() != null ? resource.getStatus().getExternalId() : null;
             if (deployedRealm == null) {
                 log.info("Not deployed? {}", resource.getMetadata().getName());
@@ -72,7 +71,6 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
             log.error("Error while execute cleanup", e);
             return DeleteControl.noFinalizerRemoval();
         }
-
     }
 
     @Override
@@ -80,20 +78,18 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
         try {
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
-            try (var provider = keycloakProvider.configure(getKeycloakConfigProperties(resource))) {
-                RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
+            RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
-                String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
-                        ? resource.getStatus().getExternalId() : realmImport.getRealm();
-                realmImportService.doImport(deployedRealm, realmImport);
+            String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
+                    ? resource.getStatus().getExternalId() : realmImport.getRealm();
+            realmImportService.doImport(deployedRealm, realmImport);
 
-                SchemaStatus status = new SchemaStatus();
-                status.setState(SchemaStatus.State.SUCCESS);
-                status.setError(false);
-                status.setMessage("Successful import");
-                status.setExternalId(realmImport.getRealm());
-                resource.setStatus(status);
-            }
+            SchemaStatus status = new SchemaStatus();
+            status.setState(SchemaStatus.State.SUCCESS);
+            status.setError(false);
+            status.setMessage("Successful import");
+            status.setExternalId(realmImport.getRealm());
+            resource.setStatus(status);
 
             return UpdateControl.updateStatus(resource);
         } catch (Exception e) {
@@ -109,32 +105,7 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
         }
     }
 
-    private KeycloakConfigProperties getKeycloakConfigProperties(KeycloakConfig resource) throws MalformedURLException {
-        SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection = resource.getSpec().getKeycloakConnection();
-        String password = readPassword(keycloakConnection, resource.getMetadata().getNamespace());
-        return convert(keycloakConnection, password);
-    }
-
-    private KeycloakConfigProperties convert(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection,
-                                             String password) throws MalformedURLException {
-        return new KeycloakConfigProperties(
-                keycloakConnection.getLoginRealm(),
-                keycloakConnection.getClientId(),
-                keycloakConnection.getVersion(),
-                new URL(keycloakConnection.getUrl()),
-                keycloakConnection.getUser(),
-                password,
-                "",
-                keycloakConnection.getGrantType(),
-                keycloakConnection.isSslVerify(),
-                keycloakConnection.getHttpProxy(),
-                keycloakConnection.getAvailabilityCheck(),
-                keycloakConnection.getConnectTimeout(),
-                keycloakConnection.getReadTimeout()
-        );
-    }
-
-    private String readPassword(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection, String namespace) {
+    /*private String readPassword(SchemaSpec.KeycloakConfigPropertiesSpec keycloakConnection, String namespace) {
         SchemaSpec.SecretRef secretRef = keycloakConnection.getCredentialSecret();
 
         Secret credentialSecret = kubernetesClient
@@ -159,7 +130,7 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
         return password;
     }
 
-    /*
+
     private void runKeycloakConfig(KeycloakConfig resource, Secret credentialSecret) throws IOException {
         String importConfigString = resource.getSpec().getRealmConfiguration();
         InputStream importConfigStream = new ByteArrayInputStream(importConfigString.getBytes(StandardCharsets.UTF_8));

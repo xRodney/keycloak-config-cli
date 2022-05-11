@@ -21,27 +21,12 @@
 package com.ysoft.keycloak.config.operator.spec;
 
 import de.adorsys.keycloak.config.model.RealmImport;
-import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.net.URL;
-import java.time.Duration;
 
 public class SchemaSpec {
     @NotNull
-    private KeycloakConfigPropertiesSpec keycloakConnection;
-    @NotNull
     private RealmImport realm;
-
-    public KeycloakConfigPropertiesSpec getKeycloakConnection() {
-        return keycloakConnection;
-    }
-
-    public void setKeycloakConnection(KeycloakConfigPropertiesSpec keycloakConnection) {
-        this.keycloakConnection = keycloakConnection;
-    }
 
     public RealmImport getRealm() {
         return realm;
@@ -49,126 +34,6 @@ public class SchemaSpec {
 
     public void setRealm(RealmImport realm) {
         this.realm = realm;
-    }
-
-    public static class KeycloakConfigPropertiesSpec {
-        @NotBlank
-        private String loginRealm = "master";
-        @NotBlank
-        private String user = "admin";
-        @NotBlank
-        private String clientId = "admin-cli";
-        @NotNull
-        private String url;
-        @NotNull
-        private SecretRef credentialSecret;
-        @NotBlank
-        private String grantType = "password";
-        @NotNull
-        private boolean sslVerify = true;
-        @NotNull
-        private String version = "@keycloak.version@";
-        private URL httpProxy;
-        private Duration connectTimeout = Duration.ofSeconds(10);
-        private Duration readTimeout = Duration.ofSeconds(10);
-        @Valid
-        private KeycloakConfigProperties.KeycloakAvailabilityCheck availabilityCheck;
-
-        public String getLoginRealm() {
-            return loginRealm;
-        }
-
-        public void setLoginRealm(String loginRealm) {
-            this.loginRealm = loginRealm;
-        }
-
-        public String getUser() {
-            return user;
-        }
-
-        public void setUser(String user) {
-            this.user = user;
-        }
-
-        public String getClientId() {
-            return clientId;
-        }
-
-        public void setClientId(String clientId) {
-            this.clientId = clientId;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public SecretRef getCredentialSecret() {
-            return credentialSecret;
-        }
-
-        public void setCredentialSecret(SecretRef credentialSecret) {
-            this.credentialSecret = credentialSecret;
-        }
-
-        public String getGrantType() {
-            return grantType;
-        }
-
-        public void setGrantType(String grantType) {
-            this.grantType = grantType;
-        }
-
-        public boolean isSslVerify() {
-            return sslVerify;
-        }
-
-        public void setSslVerify(boolean sslVerify) {
-            this.sslVerify = sslVerify;
-        }
-
-        public KeycloakConfigProperties.KeycloakAvailabilityCheck getAvailabilityCheck() {
-            return availabilityCheck;
-        }
-
-        public void setAvailabilityCheck(KeycloakConfigProperties.KeycloakAvailabilityCheck availabilityCheck) {
-            this.availabilityCheck = availabilityCheck;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        public URL getHttpProxy() {
-            return httpProxy;
-        }
-
-        public void setHttpProxy(URL httpProxy) {
-            this.httpProxy = httpProxy;
-        }
-
-        public Duration getConnectTimeout() {
-            return connectTimeout;
-        }
-
-        public void setConnectTimeout(Duration connectTimeout) {
-            this.connectTimeout = connectTimeout;
-        }
-
-        public Duration getReadTimeout() {
-            return readTimeout;
-        }
-
-        public void setReadTimeout(Duration readTimeout) {
-            this.readTimeout = readTimeout;
-        }
     }
 
     public static class SecretRef {

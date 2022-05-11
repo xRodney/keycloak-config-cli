@@ -21,18 +21,14 @@
 package com.ysoft.keycloak.config.operator;
 
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
-import io.javaoperatorsdk.operator.Operator;
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.stereotype.Component;
 
 @SpringBootApplication(proxyBeanMethods = false)
-@EnableConfigurationProperties({ImportConfigProperties.class})
+@EnableConfigurationProperties({ImportConfigProperties.class, KeycloakConfigProperties.class})
 @ComponentScan(basePackages = {"com.ysoft.keycloak.config.operator", "de.adorsys.keycloak.config"})
 public class KeycloakConfigApplication {
 //    public static void main(String[] args) {
