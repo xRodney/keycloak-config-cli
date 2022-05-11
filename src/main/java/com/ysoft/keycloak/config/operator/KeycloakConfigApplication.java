@@ -28,17 +28,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication(proxyBeanMethods = false)
-@EnableConfigurationProperties({ImportConfigProperties.class, KeycloakConfigProperties.class})
+@EnableConfigurationProperties({KeycloakConfigProperties.class, ImportConfigProperties.class})
 @ComponentScan(basePackages = {"com.ysoft.keycloak.config.operator", "de.adorsys.keycloak.config"})
 public class KeycloakConfigApplication {
-//    public static void main(String[] args) {
-//        // https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-application-exit
-//        System.exit(
-//                SpringApplication.exit(SpringApplication.run(KeycloakConfigApplication.class, args))
-//        );
-//    }
-
-
     public static void main(String[] args) {
         SpringApplication.run(KeycloakConfigApplication.class, args);
     }

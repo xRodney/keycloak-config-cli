@@ -57,7 +57,7 @@ public class StateService {
      * Loads the realm states and preserves it into the realm representation object
      * to prevent state erasure during realm update
      *
-     * @param realmName
+     * @param realmName   existing realm name
      * @param realmImport the {@link RealmRepresentation} instance which will be synchronized with the Keycloak
      */
     public void loadState(String realmName, RealmRepresentation realmImport) {

@@ -23,11 +23,8 @@ package com.ysoft.keycloak.config.operator.controller;
 import com.ysoft.keycloak.config.operator.spec.KeycloakConfig;
 import com.ysoft.keycloak.config.operator.spec.SchemaStatus;
 import de.adorsys.keycloak.config.model.RealmImport;
-import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
-import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,19 +36,10 @@ public class KeycloakConfigController implements Reconciler<KeycloakConfig> {
     public static final String KIND = "SchemaSpec";
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
 
-    private final KubernetesClient kubernetesClient;
-    private final KeycloakProvider keycloakProvider;
     private final RealmImportService realmImportService;
-    private final KeycloakConfigProperties keycloakConfigProperties;
 
-    public KeycloakConfigController(KubernetesClient kubernetesClient,
-                                    KeycloakProvider keycloakProvider,
-                                    RealmImportService realmImportService,
-                                    KeycloakConfigProperties keycloakConfigProperties) {
-        this.kubernetesClient = kubernetesClient;
-        this.keycloakProvider = keycloakProvider;
+    public KeycloakConfigController(RealmImportService realmImportService) {
         this.realmImportService = realmImportService;
-        this.keycloakConfigProperties = keycloakConfigProperties;
     }
 
     @Override
