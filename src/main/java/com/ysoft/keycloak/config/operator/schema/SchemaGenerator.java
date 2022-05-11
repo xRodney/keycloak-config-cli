@@ -22,10 +22,15 @@ package com.ysoft.keycloak.config.operator.schema;
 
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.springboot.starter.ResourceClassResolver;
+import io.sundr.model.ClassRef;
+import io.sundr.model.repo.DefinitionRepository;
+import org.keycloak.common.util.MultivaluedHashMap;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class SchemaGenerator {
@@ -39,10 +44,21 @@ public class SchemaGenerator {
 
     public void run(Path target) {
         var schemaGenerator = new SchemaSanitizer();
+        schemaGenerator.schemaFrom(MultivaluedHashMap.class, this::customizeMultivaluedHashMap);
         for (var reconciler : reconcilers) {
             var customResourceClass = resourceClassResolver.resolveCustomResourceClass(reconciler);
             schemaGenerator.addResource(customResourceClass);
         }
         schemaGenerator.generateSchema(target);
+    }
+
+    public ClassRef customizeMultivaluedHashMap(ClassRef classRef, DefinitionRepository repository) {
+        var key = classRef.getArguments().get(0);
+        var value = classRef.getArguments().get(1);
+
+        var map = repository.getDefinition(Map.class.getCanonicalName());
+        var list = repository.getDefinition(List.class.getCanonicalName());
+
+        return map.toReference(key, list.toReference(value));
     }
 }

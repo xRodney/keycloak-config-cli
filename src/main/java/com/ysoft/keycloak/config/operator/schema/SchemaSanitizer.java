@@ -65,10 +65,17 @@ public class SchemaSanitizer {
     private final DefinitionRepository repository;
 
     private VisitedTracker tracker;
+    private Map<String, TypeCustomizer> schemasFrom;
+
+    @FunctionalInterface
+    public interface TypeCustomizer {
+        ClassRef customize(ClassRef type, DefinitionRepository repository);
+    }
 
     public SchemaSanitizer() {
         repository = DefinitionRepository.getRepository();
         generator = new CRDGenerator();
+        schemasFrom = new HashMap<>();
     }
 
     public void setIgnoredProps(Class<?> clazz, Collection<String> ignored) {
@@ -156,8 +163,18 @@ public class SchemaSanitizer {
         if (isJavaInternal(typeRef)) {
             return typeRef;
         }
-        if (typeRef instanceof ClassRef && tracker.shouldSkip(typeRef)) {
-            return (T) JSON_NODE_REF;
+        if (typeRef instanceof ClassRef) {
+            if (tracker.shouldSkip(typeRef)) {
+                return (T) JSON_NODE_REF;
+            }
+            var classRef = (ClassRef) typeRef;
+            var replacement = schemasFrom.get(classRef.getFullyQualifiedName());
+            if (replacement != null) {
+                var typeRef2 = replacement.customize(classRef, repository);
+                if (typeRef2 != null) {
+                    typeRef = (T) typeRef2;
+                }
+            }
         }
 
         var typeDef = repository.getDefinition(typeRef);
@@ -188,6 +205,10 @@ public class SchemaSanitizer {
 
     public void setMaxRecursionDepth(int maxRecursionDepth) {
         this.maxRecursionDepth = maxRecursionDepth;
+    }
+
+    public void schemaFrom(Class<?> classToReplace, TypeCustomizer customizer) {
+        this.schemasFrom.put(classToReplace.getCanonicalName(), customizer);
     }
 
     static class VisitedTracker {
