@@ -60,17 +60,11 @@ public class SchemaSanitizer {
     private static final ClassRef JSON_NODE_REF = ClassRef.forName(JsonNode.class.getCanonicalName());
     private static final Logger log = LoggerFactory.getLogger(SchemaSanitizer.class);
     private final CRDGenerator generator;
-    private int maxRecursionDepth = 10;
     private final Map<String, Set<String>> ignoredPropsByClassName = new HashMap<>();
     private final DefinitionRepository repository;
-
+    private int maxRecursionDepth = 10;
     private VisitedTracker tracker;
     private Map<String, TypeCustomizer> schemasFrom;
-
-    @FunctionalInterface
-    public interface TypeCustomizer {
-        ClassRef customize(ClassRef type, DefinitionRepository repository);
-    }
 
     public SchemaSanitizer() {
         repository = DefinitionRepository.getRepository();
@@ -103,8 +97,8 @@ public class SchemaSanitizer {
     private TypeDef registerSanitizedType(TypeDef typeDef, String name) {
         Objects.requireNonNull(typeDef, "'typeDef' cannot be null");
         var sanitizedDef = new TypeDef(typeDef.getKind(), typeDef.getPackageName(), name,
-                typeDef.getComments(), typeDef.getAnnotations(), sanitizeTypeRefs(typeDef.getExtendsList()),
-                sanitizeTypeRefs(typeDef.getImplementsList()), typeDef.getParameters(), handleProperties(typeDef),
+                typeDef.getComments(), typeDef.getAnnotations(), sanitizeClassRefs(typeDef.getExtendsList()),
+                sanitizeClassRefs(typeDef.getImplementsList()), typeDef.getParameters(), handleProperties(typeDef),
                 typeDef.getConstructors(), typeDef.getMethods(), typeDef.getOuterTypeName(), typeDef.getInnerTypes(),
                 typeDef.getModifiers(), typeDef.getAttributes()
         );
@@ -123,24 +117,30 @@ public class SchemaSanitizer {
     private Property handleProperty(TypeDef typeDef, Property prop) {
         if (isIgnoredProperty(typeDef, prop)) {
             return null;
-        } else if (!isJavaInternal(prop.getTypeRef())) {
-            TypeRef typeRef = getSanitizedTypeRef(prop.getTypeRef());
-            return new Property(prop.getAnnotations(), typeRef, prop.getName(),
-                    prop.getComments(), prop.getModifiers(), prop.getAttributes());
         }
-        return prop;
+        if (!(prop.getTypeRef() instanceof ClassRef)) {
+            return prop;
+        }
+        ClassRef classRef = (ClassRef) prop.getTypeRef();
+        if (isJavaInternal(classRef)) {
+            return prop;
+        }
+
+        TypeRef typeRef = getSanitizedTypeRef(prop.getTypeRef());
+        return new Property(prop.getAnnotations(), typeRef, prop.getName(),
+                prop.getComments(), prop.getModifiers(), prop.getAttributes());
     }
 
-    private boolean isJavaInternal(TypeRef typeRef) {
-        if (typeRef instanceof ClassRef) {
-            var classRef = (ClassRef) typeRef;
-            var fullyQualifiedName = classRef.getFullyQualifiedName();
-            if (isJavaInternal(fullyQualifiedName) && classRef.getArguments().stream().allMatch(this::isJavaInternal)) {
-                return true;
-            }
-            if (isJsonNode(classRef)) {
-                return true;
-            }
+    private boolean isJavaInternal(ClassRef classRef) {
+        var fullyQualifiedName = classRef.getFullyQualifiedName();
+        if (isJavaInternal(fullyQualifiedName) && classRef.getArguments().stream()
+                .filter(ClassRef.class::isInstance)
+                .map(typeRef -> (ClassRef) typeRef)
+                .allMatch(this::isJavaInternal)) {
+            return true;
+        }
+        if (isJsonNode(classRef)) {
+            return true;
         }
         return false;
     }
@@ -153,51 +153,57 @@ public class SchemaSanitizer {
         return classRef.equals(JSON_NODE_REF) || classRef.getFullyQualifiedName().startsWith(JSON_NODE_REF.getFullyQualifiedName());
     }
 
-
     private boolean isIgnoredProperty(TypeDef typeDef, Property prop) {
         return ignoredPropsByClassName.getOrDefault(typeDef.getFullyQualifiedName(), Set.of())
                 .contains(prop.getName());
     }
 
-    private <T extends TypeRef> T getSanitizedTypeRef(T typeRef) {
-        if (isJavaInternal(typeRef)) {
-            return typeRef;
+    private TypeRef getSanitizedTypeRef(TypeRef typeRef) {
+        return typeRef instanceof ClassRef ? getSanitizedClassRef((ClassRef) typeRef) : typeRef;
+    }
+
+    private ClassRef getSanitizedClassRef(ClassRef classRef) {
+        if (isJavaInternal(classRef)) {
+            return classRef;
         }
-        if (typeRef instanceof ClassRef) {
-            if (tracker.shouldSkip(typeRef)) {
-                return (T) JSON_NODE_REF;
-            }
-            var classRef = (ClassRef) typeRef;
-            var replacement = schemasFrom.get(classRef.getFullyQualifiedName());
-            if (replacement != null) {
-                var typeRef2 = replacement.customize(classRef, repository);
-                if (typeRef2 != null) {
-                    typeRef = (T) typeRef2;
-                }
-            }
+        if (tracker.shouldSkip(classRef)) {
+            return JSON_NODE_REF;
         }
 
-        var typeDef = repository.getDefinition(typeRef);
+        classRef = maybeReplaceSchema(classRef);
+
+        var typeDef = repository.getDefinition(classRef);
         if (typeDef == null || typeDef.isEnum()) {
-            return typeRef;
+            return classRef;
         }
 
         try {
-            int depth = tracker.push(typeRef);
+            int depth = tracker.push(classRef);
             String name = depth == 0 ? typeDef.getName() : typeDef.getName() + depth;
             typeDef = registerSanitizedType(typeDef, name);
         } finally {
             tracker.pop();
         }
 
-        if (typeRef instanceof ClassRef) {
-            var arguments = sanitizeTypeRefs(((ClassRef) typeRef).getArguments());
-            return (T) typeDef.toReference(arguments);
-        }
-        return typeRef;
+        var arguments = sanitizeTypeRefs(classRef.getArguments());
+        return typeDef.toReference(arguments);
     }
 
-    private <T extends TypeRef> List<T> sanitizeTypeRefs(List<T> typeRefs) {
+    private ClassRef maybeReplaceSchema(ClassRef classRef) {
+        var replacement = schemasFrom.get(classRef.getFullyQualifiedName());
+        if (replacement != null) {
+            return replacement.customize(classRef, repository);
+        }
+        return classRef;
+    }
+
+    private List<ClassRef> sanitizeClassRefs(List<ClassRef> typeRefs) {
+        return typeRefs.stream()
+                .map(this::getSanitizedClassRef)
+                .collect(Collectors.toList());
+    }
+
+    private List<TypeRef> sanitizeTypeRefs(List<TypeRef> typeRefs) {
         return typeRefs.stream()
                 .map(this::getSanitizedTypeRef)
                 .collect(Collectors.toList());
@@ -209,6 +215,11 @@ public class SchemaSanitizer {
 
     public void schemaFrom(Class<?> classToReplace, TypeCustomizer customizer) {
         this.schemasFrom.put(classToReplace.getCanonicalName(), customizer);
+    }
+
+    @FunctionalInterface
+    public interface TypeCustomizer {
+        ClassRef customize(ClassRef type, DefinitionRepository repository);
     }
 
     static class VisitedTracker {
