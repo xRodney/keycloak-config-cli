@@ -19,135 +19,6 @@ spec:
       properties:
         spec:
           properties:
-            keycloakConnection:
-              properties:
-                credentialSecret:
-                  properties:
-                    key:
-                      type: string
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                  required:
-                  - key
-                  - name
-                  type: object
-                sslVerify:
-                  type: boolean
-                readTimeout:
-                  properties:
-                    nanos:
-                      type: integer
-                    seconds:
-                      type: integer
-                  type: object
-                availabilityCheck:
-                  properties:
-                    timeout:
-                      properties:
-                        nanos:
-                          type: integer
-                        seconds:
-                          type: integer
-                      type: object
-                    enabled:
-                      type: boolean
-                    retryDelay:
-                      properties:
-                        nanos:
-                          type: integer
-                        seconds:
-                          type: integer
-                      type: object
-                  required:
-                  - timeout
-                  - enabled
-                  - retryDelay
-                  type: object
-                connectTimeout:
-                  properties:
-                    nanos:
-                      type: integer
-                    seconds:
-                      type: integer
-                  type: object
-                version:
-                  type: string
-                url:
-                  type: string
-                loginRealm:
-                  type: string
-                grantType:
-                  type: string
-                httpProxy:
-                  properties:
-                    port:
-                      type: integer
-                    path:
-                      type: string
-                    host:
-                      type: string
-                    hashCode:
-                      type: integer
-                    hostAddress:
-                      properties:
-                        holder:
-                          properties:
-                            originalHostName:
-                              type: string
-                            address:
-                              type: integer
-                            hostName:
-                              type: string
-                            family:
-                              type: integer
-                          type: object
-                        canonicalHostName:
-                          type: string
-                      type: object
-                    tempState:
-                      properties:
-                        port:
-                          type: integer
-                        file:
-                          type: string
-                        authority:
-                          type: string
-                        ref:
-                          type: string
-                        host:
-                          type: string
-                        protocol:
-                          type: string
-                        hashCode:
-                          type: integer
-                      type: object
-                    file:
-                      type: string
-                    authority:
-                      type: string
-                    ref:
-                      type: string
-                    handler:
-                      type: object
-                    protocol:
-                      type: string
-                    userInfo:
-                      type: string
-                    query:
-                      type: string
-                  type: object
-                user:
-                  type: string
-                clientId:
-                  type: string
-              required:
-              - credentialSecret
-              - sslVerify
-              - version
-              - url
-              type: object
             realm:
               properties:
                 authenticationFlowImports:
@@ -321,7 +192,9 @@ spec:
                               type: string
                             config:
                               additionalProperties:
-                                type: string
+                                items:
+                                  type: string
+                                type: array
                               type: object
                             credentialData:
                               type: string
@@ -504,7 +377,9 @@ spec:
                               type: string
                             config:
                               additionalProperties:
-                                type: string
+                                items:
+                                  type: string
+                                type: array
                               type: object
                             credentialData:
                               type: string
@@ -831,6 +706,189 @@ spec:
                                   type: object
                                 displayName:
                                   type: string
+                                scopes:
+                                  items:
+                                    properties:
+                                      id:
+                                        type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      displayName:
+                                        type: string
+                                      name:
+                                        type: string
+                                      iconUri:
+                                        type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                            id:
+                                              type: string
+                                            owner:
+                                              type: string
+                                            resources:
+                                              items:
+                                                type: string
+                                              type: array
+                                            policies:
+                                              items:
+                                                type: string
+                                              type: array
+                                            decisionStrategy:
+                                              enum:
+                                                - AFFIRMATIVE
+                                                - CONSENSUS
+                                                - UNANIMOUS
+                                              type: string
+                                            logic:
+                                              enum:
+                                                - POSITIVE
+                                                - NEGATIVE
+                                              type: string
+                                            resourcesData:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            scopesData:
+                                              items:
+                                                properties:
+                                                  id:
+                                                    type: string
+                                                  resources:
+                                                    items:
+                                                      properties:
+                                                        _id:
+                                                          type: string
+                                                        uris:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        attributes:
+                                                          additionalProperties:
+                                                            items:
+                                                              type: string
+                                                            type: array
+                                                          type: object
+                                                        displayName:
+                                                          type: string
+                                                        scopes:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        owner:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        name:
+                                                          type: string
+                                                        type:
+                                                          type: string
+                                                        icon_uri:
+                                                          type: string
+                                                        ownerManagedAccess:
+                                                          type: boolean
+                                                      type: object
+                                                    type: array
+                                                  displayName:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  iconUri:
+                                                    type: string
+                                                  policies:
+                                                    items:
+                                                      properties:
+                                                        config:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                      type: object
+                                                    type: array
+                                                type: object
+                                              type: array
+                                            description:
+                                              type: string
+                                            scopes:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        type: array
+                                    type: object
+                                  type: array
+                                owner:
+                                  properties:
+                                    id:
+                                      type: string
+                                    name:
+                                      type: string
+                                  type: object
                                 name:
                                   type: string
                                 type:
@@ -860,12 +918,175 @@ spec:
                               properties:
                                 id:
                                   type: string
+                                resources:
+                                  items:
+                                    properties:
+                                      _id:
+                                        type: string
+                                      uris:
+                                        items:
+                                          type: string
+                                        type: array
+                                      attributes:
+                                        additionalProperties:
+                                          items:
+                                            type: string
+                                          type: array
+                                        type: object
+                                      displayName:
+                                        type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      icon_uri:
+                                        type: string
+                                      ownerManagedAccess:
+                                        type: boolean
+                                    type: object
+                                  type: array
                                 displayName:
                                   type: string
                                 name:
                                   type: string
                                 iconUri:
                                   type: string
+                                policies:
+                                  items:
+                                    properties:
+                                      config:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
+                                      id:
+                                        type: string
+                                      owner:
+                                        type: string
+                                      resources:
+                                        items:
+                                          type: string
+                                        type: array
+                                      policies:
+                                        items:
+                                          type: string
+                                        type: array
+                                      decisionStrategy:
+                                        enum:
+                                          - AFFIRMATIVE
+                                          - CONSENSUS
+                                          - UNANIMOUS
+                                        type: string
+                                      logic:
+                                        enum:
+                                          - POSITIVE
+                                          - NEGATIVE
+                                        type: string
+                                      resourcesData:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      scopesData:
+                                        items:
+                                          properties:
+                                            id:
+                                              type: string
+                                            resources:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            displayName:
+                                              type: string
+                                            name:
+                                              type: string
+                                            iconUri:
+                                              type: string
+                                            policies:
+                                              items:
+                                                properties:
+                                                  config:
+                                                    additionalProperties:
+                                                      type: string
+                                                    type: object
+                                                type: object
+                                              type: array
+                                          type: object
+                                        type: array
+                                      description:
+                                        type: string
+                                      scopes:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  type: array
                               type: object
                             type: array
                           policies:
@@ -915,6 +1136,12 @@ spec:
                                         type: object
                                       displayName:
                                         type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       name:
                                         type: string
                                       type:
@@ -934,12 +1161,54 @@ spec:
                                     properties:
                                       id:
                                         type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
                                       displayName:
                                         type: string
                                       name:
                                         type: string
                                       iconUri:
                                         type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                          type: object
+                                        type: array
                                     type: object
                                   type: array
                                 description:
@@ -1254,6 +1523,290 @@ spec:
                         type: object
                       name:
                         type: string
+                      subGroups:
+                        items:
+                          properties:
+                            attributes:
+                              additionalProperties:
+                                items:
+                                  type: string
+                                type: array
+                              type: object
+                            id:
+                              type: string
+                            access:
+                              additionalProperties:
+                                type: boolean
+                              type: object
+                            realmRoles:
+                              items:
+                                type: string
+                              type: array
+                            path:
+                              type: string
+                            clientRoles:
+                              additionalProperties:
+                                items:
+                                  type: string
+                                type: array
+                              type: object
+                            name:
+                              type: string
+                            subGroups:
+                              items:
+                                properties:
+                                  attributes:
+                                    additionalProperties:
+                                      items:
+                                        type: string
+                                      type: array
+                                    type: object
+                                  id:
+                                    type: string
+                                  access:
+                                    additionalProperties:
+                                      type: boolean
+                                    type: object
+                                  realmRoles:
+                                    items:
+                                      type: string
+                                    type: array
+                                  path:
+                                    type: string
+                                  clientRoles:
+                                    additionalProperties:
+                                      items:
+                                        type: string
+                                      type: array
+                                    type: object
+                                  name:
+                                    type: string
+                                  subGroups:
+                                    items:
+                                      properties:
+                                        attributes:
+                                          additionalProperties:
+                                            items:
+                                              type: string
+                                            type: array
+                                          type: object
+                                        id:
+                                          type: string
+                                        access:
+                                          additionalProperties:
+                                            type: boolean
+                                          type: object
+                                        realmRoles:
+                                          items:
+                                            type: string
+                                          type: array
+                                        path:
+                                          type: string
+                                        clientRoles:
+                                          additionalProperties:
+                                            items:
+                                              type: string
+                                            type: array
+                                          type: object
+                                        name:
+                                          type: string
+                                        subGroups:
+                                          items:
+                                            properties:
+                                              attributes:
+                                                additionalProperties:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                type: object
+                                              id:
+                                                type: string
+                                              access:
+                                                additionalProperties:
+                                                  type: boolean
+                                                type: object
+                                              realmRoles:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              path:
+                                                type: string
+                                              clientRoles:
+                                                additionalProperties:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                type: object
+                                              name:
+                                                type: string
+                                              subGroups:
+                                                items:
+                                                  properties:
+                                                    attributes:
+                                                      additionalProperties:
+                                                        items:
+                                                          type: string
+                                                        type: array
+                                                      type: object
+                                                    id:
+                                                      type: string
+                                                    access:
+                                                      additionalProperties:
+                                                        type: boolean
+                                                      type: object
+                                                    realmRoles:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    path:
+                                                      type: string
+                                                    clientRoles:
+                                                      additionalProperties:
+                                                        items:
+                                                          type: string
+                                                        type: array
+                                                      type: object
+                                                    name:
+                                                      type: string
+                                                    subGroups:
+                                                      items:
+                                                        properties:
+                                                          attributes:
+                                                            additionalProperties:
+                                                              items:
+                                                                type: string
+                                                              type: array
+                                                            type: object
+                                                          id:
+                                                            type: string
+                                                          access:
+                                                            additionalProperties:
+                                                              type: boolean
+                                                            type: object
+                                                          realmRoles:
+                                                            items:
+                                                              type: string
+                                                            type: array
+                                                          path:
+                                                            type: string
+                                                          clientRoles:
+                                                            additionalProperties:
+                                                              items:
+                                                                type: string
+                                                              type: array
+                                                            type: object
+                                                          name:
+                                                            type: string
+                                                          subGroups:
+                                                            items:
+                                                              properties:
+                                                                attributes:
+                                                                  additionalProperties:
+                                                                    items:
+                                                                      type: string
+                                                                    type: array
+                                                                  type: object
+                                                                id:
+                                                                  type: string
+                                                                access:
+                                                                  additionalProperties:
+                                                                    type: boolean
+                                                                  type: object
+                                                                realmRoles:
+                                                                  items:
+                                                                    type: string
+                                                                  type: array
+                                                                path:
+                                                                  type: string
+                                                                clientRoles:
+                                                                  additionalProperties:
+                                                                    items:
+                                                                      type: string
+                                                                    type: array
+                                                                  type: object
+                                                                name:
+                                                                  type: string
+                                                                subGroups:
+                                                                  items:
+                                                                    properties:
+                                                                      attributes:
+                                                                        additionalProperties:
+                                                                          items:
+                                                                            type: string
+                                                                          type: array
+                                                                        type: object
+                                                                      id:
+                                                                        type: string
+                                                                      access:
+                                                                        additionalProperties:
+                                                                          type: boolean
+                                                                        type: object
+                                                                      realmRoles:
+                                                                        items:
+                                                                          type: string
+                                                                        type: array
+                                                                      path:
+                                                                        type: string
+                                                                      clientRoles:
+                                                                        additionalProperties:
+                                                                          items:
+                                                                            type: string
+                                                                          type: array
+                                                                        type: object
+                                                                      name:
+                                                                        type: string
+                                                                      subGroups:
+                                                                        items:
+                                                                          properties:
+                                                                            attributes:
+                                                                              additionalProperties:
+                                                                                items:
+                                                                                  type: string
+                                                                                type: array
+                                                                              type: object
+                                                                            id:
+                                                                              type: string
+                                                                            access:
+                                                                              additionalProperties:
+                                                                                type: boolean
+                                                                              type: object
+                                                                            realmRoles:
+                                                                              items:
+                                                                                type: string
+                                                                              type: array
+                                                                            path:
+                                                                              type: string
+                                                                            clientRoles:
+                                                                              additionalProperties:
+                                                                                items:
+                                                                                  type: string
+                                                                                type: array
+                                                                              type: object
+                                                                            name:
+                                                                              type: string
+                                                                            subGroups:
+                                                                              items:
+                                                                                type: object
+                                                                                x-kubernetes-preserve-unknown-fields: true
+                                                                              type: array
+                                                                          type: object
+                                                                        type: array
+                                                                    type: object
+                                                                  type: array
+                                                              type: object
+                                                            type: array
+                                                        type: object
+                                                      type: array
+                                                  type: object
+                                                type: array
+                                            type: object
+                                          type: array
+                                      type: object
+                                    type: array
+                                type: object
+                              type: array
+                          type: object
+                        type: array
                     type: object
                   type: array
                 webAuthnPolicyCreateTimeout:
@@ -1614,6 +2167,189 @@ spec:
                                   type: object
                                 displayName:
                                   type: string
+                                scopes:
+                                  items:
+                                    properties:
+                                      id:
+                                        type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      displayName:
+                                        type: string
+                                      name:
+                                        type: string
+                                      iconUri:
+                                        type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                            id:
+                                              type: string
+                                            owner:
+                                              type: string
+                                            resources:
+                                              items:
+                                                type: string
+                                              type: array
+                                            policies:
+                                              items:
+                                                type: string
+                                              type: array
+                                            decisionStrategy:
+                                              enum:
+                                                - AFFIRMATIVE
+                                                - CONSENSUS
+                                                - UNANIMOUS
+                                              type: string
+                                            logic:
+                                              enum:
+                                                - POSITIVE
+                                                - NEGATIVE
+                                              type: string
+                                            resourcesData:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            scopesData:
+                                              items:
+                                                properties:
+                                                  id:
+                                                    type: string
+                                                  resources:
+                                                    items:
+                                                      properties:
+                                                        _id:
+                                                          type: string
+                                                        uris:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        attributes:
+                                                          additionalProperties:
+                                                            items:
+                                                              type: string
+                                                            type: array
+                                                          type: object
+                                                        displayName:
+                                                          type: string
+                                                        scopes:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        owner:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        name:
+                                                          type: string
+                                                        type:
+                                                          type: string
+                                                        icon_uri:
+                                                          type: string
+                                                        ownerManagedAccess:
+                                                          type: boolean
+                                                      type: object
+                                                    type: array
+                                                  displayName:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  iconUri:
+                                                    type: string
+                                                  policies:
+                                                    items:
+                                                      properties:
+                                                        config:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                      type: object
+                                                    type: array
+                                                type: object
+                                              type: array
+                                            description:
+                                              type: string
+                                            scopes:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        type: array
+                                    type: object
+                                  type: array
+                                owner:
+                                  properties:
+                                    id:
+                                      type: string
+                                    name:
+                                      type: string
+                                  type: object
                                 name:
                                   type: string
                                 type:
@@ -1643,12 +2379,175 @@ spec:
                               properties:
                                 id:
                                   type: string
+                                resources:
+                                  items:
+                                    properties:
+                                      _id:
+                                        type: string
+                                      uris:
+                                        items:
+                                          type: string
+                                        type: array
+                                      attributes:
+                                        additionalProperties:
+                                          items:
+                                            type: string
+                                          type: array
+                                        type: object
+                                      displayName:
+                                        type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      icon_uri:
+                                        type: string
+                                      ownerManagedAccess:
+                                        type: boolean
+                                    type: object
+                                  type: array
                                 displayName:
                                   type: string
                                 name:
                                   type: string
                                 iconUri:
                                   type: string
+                                policies:
+                                  items:
+                                    properties:
+                                      config:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
+                                      id:
+                                        type: string
+                                      owner:
+                                        type: string
+                                      resources:
+                                        items:
+                                          type: string
+                                        type: array
+                                      policies:
+                                        items:
+                                          type: string
+                                        type: array
+                                      decisionStrategy:
+                                        enum:
+                                          - AFFIRMATIVE
+                                          - CONSENSUS
+                                          - UNANIMOUS
+                                        type: string
+                                      logic:
+                                        enum:
+                                          - POSITIVE
+                                          - NEGATIVE
+                                        type: string
+                                      resourcesData:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      scopesData:
+                                        items:
+                                          properties:
+                                            id:
+                                              type: string
+                                            resources:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            displayName:
+                                              type: string
+                                            name:
+                                              type: string
+                                            iconUri:
+                                              type: string
+                                            policies:
+                                              items:
+                                                properties:
+                                                  config:
+                                                    additionalProperties:
+                                                      type: string
+                                                    type: object
+                                                type: object
+                                              type: array
+                                          type: object
+                                        type: array
+                                      description:
+                                        type: string
+                                      scopes:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  type: array
                               type: object
                             type: array
                           policies:
@@ -1698,6 +2597,12 @@ spec:
                                         type: object
                                       displayName:
                                         type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       name:
                                         type: string
                                       type:
@@ -1717,12 +2622,54 @@ spec:
                                     properties:
                                       id:
                                         type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
                                       displayName:
                                         type: string
                                       name:
                                         type: string
                                       iconUri:
                                         type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                          type: object
+                                        type: array
                                     type: object
                                   type: array
                                 description:
@@ -1946,6 +2893,189 @@ spec:
                                   type: object
                                 displayName:
                                   type: string
+                                scopes:
+                                  items:
+                                    properties:
+                                      id:
+                                        type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      displayName:
+                                        type: string
+                                      name:
+                                        type: string
+                                      iconUri:
+                                        type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                            id:
+                                              type: string
+                                            owner:
+                                              type: string
+                                            resources:
+                                              items:
+                                                type: string
+                                              type: array
+                                            policies:
+                                              items:
+                                                type: string
+                                              type: array
+                                            decisionStrategy:
+                                              enum:
+                                                - AFFIRMATIVE
+                                                - CONSENSUS
+                                                - UNANIMOUS
+                                              type: string
+                                            logic:
+                                              enum:
+                                                - POSITIVE
+                                                - NEGATIVE
+                                              type: string
+                                            resourcesData:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            scopesData:
+                                              items:
+                                                properties:
+                                                  id:
+                                                    type: string
+                                                  resources:
+                                                    items:
+                                                      properties:
+                                                        _id:
+                                                          type: string
+                                                        uris:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        attributes:
+                                                          additionalProperties:
+                                                            items:
+                                                              type: string
+                                                            type: array
+                                                          type: object
+                                                        displayName:
+                                                          type: string
+                                                        scopes:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        owner:
+                                                          type: object
+                                                          x-kubernetes-preserve-unknown-fields: true
+                                                        name:
+                                                          type: string
+                                                        type:
+                                                          type: string
+                                                        icon_uri:
+                                                          type: string
+                                                        ownerManagedAccess:
+                                                          type: boolean
+                                                      type: object
+                                                    type: array
+                                                  displayName:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  iconUri:
+                                                    type: string
+                                                  policies:
+                                                    items:
+                                                      properties:
+                                                        config:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                      type: object
+                                                    type: array
+                                                type: object
+                                              type: array
+                                            description:
+                                              type: string
+                                            scopes:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        type: array
+                                    type: object
+                                  type: array
+                                owner:
+                                  properties:
+                                    id:
+                                      type: string
+                                    name:
+                                      type: string
+                                  type: object
                                 name:
                                   type: string
                                 type:
@@ -1975,12 +3105,175 @@ spec:
                               properties:
                                 id:
                                   type: string
+                                resources:
+                                  items:
+                                    properties:
+                                      _id:
+                                        type: string
+                                      uris:
+                                        items:
+                                          type: string
+                                        type: array
+                                      attributes:
+                                        additionalProperties:
+                                          items:
+                                            type: string
+                                          type: array
+                                        type: object
+                                      displayName:
+                                        type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      icon_uri:
+                                        type: string
+                                      ownerManagedAccess:
+                                        type: boolean
+                                    type: object
+                                  type: array
                                 displayName:
                                   type: string
                                 name:
                                   type: string
                                 iconUri:
                                   type: string
+                                policies:
+                                  items:
+                                    properties:
+                                      config:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
+                                      id:
+                                        type: string
+                                      owner:
+                                        type: string
+                                      resources:
+                                        items:
+                                          type: string
+                                        type: array
+                                      policies:
+                                        items:
+                                          type: string
+                                        type: array
+                                      decisionStrategy:
+                                        enum:
+                                          - AFFIRMATIVE
+                                          - CONSENSUS
+                                          - UNANIMOUS
+                                        type: string
+                                      logic:
+                                        enum:
+                                          - POSITIVE
+                                          - NEGATIVE
+                                        type: string
+                                      resourcesData:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
+                                      name:
+                                        type: string
+                                      type:
+                                        type: string
+                                      scopesData:
+                                        items:
+                                          properties:
+                                            id:
+                                              type: string
+                                            resources:
+                                              items:
+                                                properties:
+                                                  _id:
+                                                    type: string
+                                                  uris:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  attributes:
+                                                    additionalProperties:
+                                                      items:
+                                                        type: string
+                                                      type: array
+                                                    type: object
+                                                  displayName:
+                                                    type: string
+                                                  scopes:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  owner:
+                                                    type: object
+                                                    x-kubernetes-preserve-unknown-fields: true
+                                                  name:
+                                                    type: string
+                                                  type:
+                                                    type: string
+                                                  icon_uri:
+                                                    type: string
+                                                  ownerManagedAccess:
+                                                    type: boolean
+                                                type: object
+                                              type: array
+                                            displayName:
+                                              type: string
+                                            name:
+                                              type: string
+                                            iconUri:
+                                              type: string
+                                            policies:
+                                              items:
+                                                properties:
+                                                  config:
+                                                    additionalProperties:
+                                                      type: string
+                                                    type: object
+                                                type: object
+                                              type: array
+                                          type: object
+                                        type: array
+                                      description:
+                                        type: string
+                                      scopes:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  type: array
                               type: object
                             type: array
                           policies:
@@ -2030,6 +3323,12 @@ spec:
                                         type: object
                                       displayName:
                                         type: string
+                                      scopes:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
+                                      owner:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       name:
                                         type: string
                                       type:
@@ -2049,12 +3348,54 @@ spec:
                                     properties:
                                       id:
                                         type: string
+                                      resources:
+                                        items:
+                                          properties:
+                                            _id:
+                                              type: string
+                                            uris:
+                                              items:
+                                                type: string
+                                              type: array
+                                            attributes:
+                                              additionalProperties:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              type: object
+                                            displayName:
+                                              type: string
+                                            scopes:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            owner:
+                                              type: object
+                                              x-kubernetes-preserve-unknown-fields: true
+                                            name:
+                                              type: string
+                                            type:
+                                              type: string
+                                            icon_uri:
+                                              type: string
+                                            ownerManagedAccess:
+                                              type: boolean
+                                          type: object
+                                        type: array
                                       displayName:
                                         type: string
                                       name:
                                         type: string
                                       iconUri:
                                         type: string
+                                      policies:
+                                        items:
+                                          properties:
+                                            config:
+                                              additionalProperties:
+                                                type: string
+                                              type: object
+                                          type: object
+                                        type: array
                                     type: object
                                   type: array
                                 description:
@@ -2173,20 +3514,220 @@ spec:
                   type: array
                 components:
                   additionalProperties:
-                    properties:
-                      id:
-                        type: string
-                      providerId:
-                        type: string
-                      subType:
-                        type: string
-                      name:
-                        type: string
-                      config:
-                        additionalProperties:
+                    items:
+                      properties:
+                        id:
                           type: string
-                        type: object
-                    type: object
+                        providerId:
+                          type: string
+                        subType:
+                          type: string
+                        subComponents:
+                          additionalProperties:
+                            items:
+                              properties:
+                                id:
+                                  type: string
+                                providerId:
+                                  type: string
+                                subType:
+                                  type: string
+                                subComponents:
+                                  additionalProperties:
+                                    items:
+                                      properties:
+                                        id:
+                                          type: string
+                                        providerId:
+                                          type: string
+                                        subType:
+                                          type: string
+                                        subComponents:
+                                          additionalProperties:
+                                            items:
+                                              properties:
+                                                id:
+                                                  type: string
+                                                providerId:
+                                                  type: string
+                                                subType:
+                                                  type: string
+                                                subComponents:
+                                                  additionalProperties:
+                                                    items:
+                                                      properties:
+                                                        id:
+                                                          type: string
+                                                        providerId:
+                                                          type: string
+                                                        subType:
+                                                          type: string
+                                                        subComponents:
+                                                          additionalProperties:
+                                                            items:
+                                                              properties:
+                                                                id:
+                                                                  type: string
+                                                                providerId:
+                                                                  type: string
+                                                                subType:
+                                                                  type: string
+                                                                subComponents:
+                                                                  additionalProperties:
+                                                                    items:
+                                                                      properties:
+                                                                        id:
+                                                                          type: string
+                                                                        providerId:
+                                                                          type: string
+                                                                        subType:
+                                                                          type: string
+                                                                        subComponents:
+                                                                          additionalProperties:
+                                                                            items:
+                                                                              properties:
+                                                                                id:
+                                                                                  type: string
+                                                                                providerId:
+                                                                                  type: string
+                                                                                subType:
+                                                                                  type: string
+                                                                                subComponents:
+                                                                                  additionalProperties:
+                                                                                    items:
+                                                                                      properties:
+                                                                                        id:
+                                                                                          type: string
+                                                                                        providerId:
+                                                                                          type: string
+                                                                                        subType:
+                                                                                          type: string
+                                                                                        subComponents:
+                                                                                          additionalProperties:
+                                                                                            items:
+                                                                                              properties:
+                                                                                                id:
+                                                                                                  type: string
+                                                                                                providerId:
+                                                                                                  type: string
+                                                                                                subType:
+                                                                                                  type: string
+                                                                                                subComponents:
+                                                                                                  additionalProperties:
+                                                                                                    items:
+                                                                                                      type: object
+                                                                                                      x-kubernetes-preserve-unknown-fields: true
+                                                                                                    type: array
+                                                                                                  type: object
+                                                                                                name:
+                                                                                                  type: string
+                                                                                                config:
+                                                                                                  additionalProperties:
+                                                                                                    items:
+                                                                                                      type: string
+                                                                                                    type: array
+                                                                                                  type: object
+                                                                                              type: object
+                                                                                            type: array
+                                                                                          type: object
+                                                                                        name:
+                                                                                          type: string
+                                                                                        config:
+                                                                                          additionalProperties:
+                                                                                            items:
+                                                                                              type: string
+                                                                                            type: array
+                                                                                          type: object
+                                                                                      type: object
+                                                                                    type: array
+                                                                                  type: object
+                                                                                name:
+                                                                                  type: string
+                                                                                config:
+                                                                                  additionalProperties:
+                                                                                    items:
+                                                                                      type: string
+                                                                                    type: array
+                                                                                  type: object
+                                                                              type: object
+                                                                            type: array
+                                                                          type: object
+                                                                        name:
+                                                                          type: string
+                                                                        config:
+                                                                          additionalProperties:
+                                                                            items:
+                                                                              type: string
+                                                                            type: array
+                                                                          type: object
+                                                                      type: object
+                                                                    type: array
+                                                                  type: object
+                                                                name:
+                                                                  type: string
+                                                                config:
+                                                                  additionalProperties:
+                                                                    items:
+                                                                      type: string
+                                                                    type: array
+                                                                  type: object
+                                                              type: object
+                                                            type: array
+                                                          type: object
+                                                        name:
+                                                          type: string
+                                                        config:
+                                                          additionalProperties:
+                                                            items:
+                                                              type: string
+                                                            type: array
+                                                          type: object
+                                                      type: object
+                                                    type: array
+                                                  type: object
+                                                name:
+                                                  type: string
+                                                config:
+                                                  additionalProperties:
+                                                    items:
+                                                      type: string
+                                                    type: array
+                                                  type: object
+                                              type: object
+                                            type: array
+                                          type: object
+                                        name:
+                                          type: string
+                                        config:
+                                          additionalProperties:
+                                            items:
+                                              type: string
+                                            type: array
+                                          type: object
+                                      type: object
+                                    type: array
+                                  type: object
+                                name:
+                                  type: string
+                                config:
+                                  additionalProperties:
+                                    items:
+                                      type: string
+                                    type: array
+                                  type: object
+                              type: object
+                            type: array
+                          type: object
+                        name:
+                          type: string
+                        config:
+                          additionalProperties:
+                            items:
+                              type: string
+                            type: array
+                          type: object
+                      type: object
+                    type: array
                   type: object
                 passwordCredentialGrantAllowed:
                   type: boolean
@@ -2194,7 +3735,6 @@ spec:
                   type: boolean
               type: object
           required:
-          - keycloakConnection
           - realm
           type: object
         status:
