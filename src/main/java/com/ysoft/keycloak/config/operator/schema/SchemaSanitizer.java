@@ -32,6 +32,7 @@ import io.sundr.model.repo.DefinitionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -83,6 +84,11 @@ public class SchemaSanitizer {
 
     public void generateSchema(Path outputPath) {
         generator.inOutputDir(outputPath.toAbsolutePath().toFile());
+        generator.generate();
+    }
+
+    public void generateSchema(CRDGenerator.CRDOutput<? extends OutputStream> output) {
+        generator.withOutput(output);
         generator.generate();
     }
 
