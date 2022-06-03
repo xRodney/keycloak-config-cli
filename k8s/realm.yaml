@@ -1,0 +1,7 @@
+apiVersion: keycloak-config.ysoft.com/v1
+kind: KeycloakConfig
+metadata:
+  name: test-realm
+spec:
+  realm:
+    realm: test-realm
