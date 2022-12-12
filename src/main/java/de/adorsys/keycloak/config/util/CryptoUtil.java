@@ -20,7 +20,7 @@
 
 package de.adorsys.keycloak.config.util;
 
-import org.springframework.security.crypto.encrypt.Encryptors;
+import org.jasypt.util.text.BasicTextEncryptor;
 
 public class CryptoUtil {
     CryptoUtil() {
@@ -28,10 +28,14 @@ public class CryptoUtil {
     }
 
     public static String encrypt(String data, String key, String salt) {
-        return Encryptors.text(key, salt).encrypt(data);
+        BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+        textEncryptor.setPassword(key + salt);
+        return textEncryptor.encrypt(data);
     }
 
     public static String decrypt(String data, String key, String salt) {
-        return Encryptors.text(key, salt).decrypt(data);
+        BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+        textEncryptor.setPassword(key + salt);
+        return textEncryptor.decrypt(data);
     }
 }

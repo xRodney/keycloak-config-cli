@@ -21,23 +21,24 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
-import de.adorsys.keycloak.config.provider.KeycloakProvider;
+import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
+import javax.ws.rs.NotAuthorizedException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
+@QuarkusTest
 class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
-    private static final String REALM_NAME = "master";
+    private static final String MASTER_REALM = "master";
+    private static final String SERVICE_ACCOUNT_REALM = "service-account";
 
     AuthorizeImportUsingServiceAccountIT() {
         this.resourcePath = "import-files/service-account";
@@ -48,95 +49,95 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
     void createServiceAccountInMasterRealm() throws IOException {
         doImport("00_update_realm_create_service_account_in_master_realm.json");
 
-        RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
-        assertThat(realm.getRealm(), is(REALM_NAME));
+        RealmRepresentation realm = keycloakProvider.getInstance().realm(MASTER_REALM).toRepresentation();
+        assertThat(realm.getRealm(), is(MASTER_REALM));
         assertThat(realm.isEnabled(), is(true));
 
-        ClientRepresentation client = keycloakRepository.getClient(REALM_NAME, "config-cli-master");
+        ClientRepresentation client = keycloakRepository.getClient(MASTER_REALM, "config-cli-master");
 
         assertThat(client.isServiceAccountsEnabled(), is(true));
     }
 
-    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-    @Nested
+    @Test
     @Order(1)
-    @TestPropertySource(properties = {
-            "keycloak.login-realm=master",
-            "keycloak.grant-type=client_credentials",
-            "keycloak.client-id=config-cli-master",
-            "keycloak.client-secret=config-cli-master-secret",
-    })
-    class ImportRealmUsingServiceAccountFromMaster {
-        private static final String REALM_NAME = "service-account";
+    void createNewRealm() throws IOException {
+        keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
+                .loginRealm(MASTER_REALM)
+                .grantType("client_credentials")
+                .clientId("config-cli-master")
+                .clientSecret("config-cli-master-secret")
+                .build()
+        );
 
-        @Autowired
-        public RealmImportService realmImportService;
+        doImport("01_create_realm_client_with_service_account_enabled.json");
 
+        RealmRepresentation realm = keycloakProvider.getInstance().realm(SERVICE_ACCOUNT_REALM).toRepresentation();
 
-        @Autowired
-        public KeycloakProvider keycloakProvider;
+        assertThat(realm.getRealm(), is(SERVICE_ACCOUNT_REALM));
+        assertThat(realm.isEnabled(), is(true));
 
-        @Test
-        @Order(1)
-        void createNewRealm() throws IOException {
-            doImport("01_create_realm_client_with_service_account_enabled.json", realmImportService);
+        ClientRepresentation client = keycloakRepository.getClient(SERVICE_ACCOUNT_REALM, "config-cli");
 
-            RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
+        assertThat(client.isServiceAccountsEnabled(), is(true));
 
-            assertThat(realm.getRealm(), is(REALM_NAME));
-            assertThat(realm.isEnabled(), is(true));
-
-            ClientRepresentation client = keycloakRepository.getClient(REALM_NAME, "config-cli");
-
-            assertThat(client.isServiceAccountsEnabled(), is(true));
-        }
-
-        @Test
-        @Order(2)
-        void logout() {
-            Assertions.assertDoesNotThrow(() -> {
-                keycloakProvider.close();
-            });
-        }
+        Assertions.assertDoesNotThrow(() -> keycloakProvider.close());
     }
 
-    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-    @Nested
+    @Test
     @Order(2)
-    @TestPropertySource(properties = {
-            "keycloak.login-realm=service-account",
-            "keycloak.grant-type=client_credentials",
-            "keycloak.client-id=config-cli",
-            "keycloak.client-secret=config-cli-secret",
-    })
-    class ImportRealmUsingServiceAccountFromDifferentRealm {
-        private static final String REALM_NAME = "service-account";
+    void masterCredentialsUnauthorized() {
+        keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
+                .loginRealm(MASTER_REALM)
+                .grantType("client_credentials")
+                .clientId("bogus-client-id")
+                .clientSecret("bogus-client-secret")
+                .build()
+        );
 
-        @Autowired
-        public RealmImportService realmImportService;
+        Assertions.assertThrows(NotAuthorizedException.class,
+                () -> doImport("01_create_realm_client_with_service_account_enabled.json"));
+
+        Assertions.assertDoesNotThrow(() -> keycloakProvider.close());
+    }
+
+    @Test
+    @Order(3)
+    void updateExistingRealm() throws IOException {
+        keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
+                .loginRealm("service-account")
+                .grantType("client_credentials")
+                .clientId("config-cli")
+                .clientSecret("config-cli-secret")
+                .build()
+        );
+
+        doImport("02_update_realm_client_with_service_account_enabled.json", realmImportService);
+
+        RealmRepresentation realm = keycloakProvider.getInstance().realm(SERVICE_ACCOUNT_REALM).toRepresentation();
+
+        assertThat(realm.getRealm(), is(SERVICE_ACCOUNT_REALM));
+        assertThat(realm.isEnabled(), is(true));
+        assertThat(realm.getLoginTheme(), is("moped"));
+
+        Assertions.assertDoesNotThrow(() -> keycloakProvider.close());
+    }
 
 
-        @Autowired
-        public KeycloakProvider keycloakProvider;
+    @Test
+    @Order(3)
+    void serviceAccountRealmCredentialsUnauthorized() {
+        keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
+                .loginRealm("service-account")
+                .grantType("client_credentials")
+                .clientId("config-cli")
+                .clientSecret("bogus")
+                .build()
+        );
 
-        @Test
-        @Order(1)
-        void updateExistingRealm() throws IOException {
-            doImport("02_update_realm_client_with_service_account_enabled.json", realmImportService);
+        Assertions.assertThrows(NotAuthorizedException.class,
+                () -> doImport("02_update_realm_client_with_service_account_enabled.json"));
 
-            RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
 
-            assertThat(realm.getRealm(), is(REALM_NAME));
-            assertThat(realm.isEnabled(), is(true));
-            assertThat(realm.getLoginTheme(), is("moped"));
-        }
-
-        @Test
-        @Order(2)
-        void logout() {
-            Assertions.assertDoesNotThrow(() -> {
-                keycloakProvider.close();
-            });
-        }
+        Assertions.assertDoesNotThrow(() -> keycloakProvider.close());
     }
 }

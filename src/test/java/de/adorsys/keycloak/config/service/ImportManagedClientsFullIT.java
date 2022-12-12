@@ -21,10 +21,14 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportManagedProperties;
+import de.adorsys.keycloak.config.properties.ImportConfigProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -36,14 +40,22 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@TestPropertySource(properties = {
-        "import.managed.client=full"
-})
+@QuarkusTest
 class ImportManagedClientsFullIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithManagedClients";
 
     ImportManagedClientsFullIT() {
         this.resourcePath = "import-files/managed-clients";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .managed(ImmutableImportManagedProperties.builder().from(config.getManaged())
+                        .client(ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues.FULL)
+                        .build()
+                )
+                .build());
     }
 
     @Test

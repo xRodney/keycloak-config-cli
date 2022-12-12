@@ -21,14 +21,14 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
-import org.junit.jupiter.api.Nested;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportVarSubstitutionProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.SetSystemProperty;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 
@@ -36,14 +36,22 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@TestPropertySource(properties = {
-        "import.var-substitution.enabled=true"
-})
+@QuarkusTest
 class ImportRealmSubstitutionIT extends AbstractImportIT {
     private static final String REALM_NAME = "realm-substitution";
 
     ImportRealmSubstitutionIT() {
         this.resourcePath = "import-files/realm-substitution";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .varSubstitution(ImmutableImportVarSubstitutionProperties.builder().from(config.getVarSubstitution())
+                        .isEnabled(true)
+                        .build()
+                )
+                .build());
     }
 
     @Test
@@ -117,57 +125,9 @@ class ImportRealmSubstitutionIT extends AbstractImportIT {
         assertThat(thrown.getMessage(), is("Cannot resolve variable 'sys:kcc.junit.display-name' (enableSubstitutionInVariables=true)."));
     }
 
-    @TestPropertySource(properties = {
-            "import.var-substitution.nested=false",
-            "import.var-substitution.undefined-is-error=false",
-            "spring.config.import=configtree:src/test/resources/import-files/realm-substitution/extended/configtree/",
-            "kcc.junit.from.spring-boot.property=value from property"
-    })
-
     @Order(4)
-    @Nested
-    @SetSystemProperty(key = "kcc.junit.display-name", value = "<div class=\\\"kc-logo-text\\\"><span>Keycloak</span></div>")
-    @SetSystemProperty(key = "kcc.junit.verify-email", value = "true")
-    @SetSystemProperty(key = "kcc.junit.not-before", value = "1200")
-    @SetSystemProperty(key = "kcc.junit.browser-security-headers", value = "{\"xRobotsTag\":\"noindex\"}")
-    class ImportRealmSubstitutionExtendedIT extends AbstractImportIT {
-
-        private static final String REALM_NAME = "realm-substitution-extended";
-        @Autowired
-        private Environment env;
-
-        ImportRealmSubstitutionExtendedIT() {
-            this.resourcePath = "import-files/realm-substitution/extended";
-        }
-
-        @Test
-        @Order(0)
-        void shouldCreateRealm() throws IOException {
-            assertThat(System.getProperty("kcc.junit.display-name"), is("<div class=\\\"kc-logo-text\\\"><span>Keycloak</span></div>"));
-
-            assertThat(env.getProperty("kcc.junit.from.spring-boot.property"), is("value from property"));
-            assertThat(env.getProperty("kcc.junit.from.spring-boot.configtree"), is("value from configtree"));
-
-            doImport("0_update_realm.json");
-
-            RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
-
-            assertThat(realm.getDisplayName(), is("<div class=\"kc-logo-text\"><span>Keycloak</span></div>"));
-            assertThat(realm.getDisplayNameHtml(), is(System.getenv("JAVA_HOME") + " - value from property - value from configtree"));
-            assertThat(realm.isVerifyEmail(), is(Boolean.valueOf(System.getProperty("kcc.junit.verify-email"))));
-            assertThat(realm.getNotBefore(), is(Integer.valueOf(System.getProperty("kcc.junit.not-before"))));
-            assertThat(realm.getBrowserSecurityHeaders().get("xRobotsTag"), is("noindex"));
-        }
-    }
-
-    @Nested
-    @Order(4)
-    @TestPropertySource(properties = {
-            "import.var-substitution.enabled=true",
-            "import.var-substitution.prefix=${",
-            "import.var-substitution.suffix=}"
-    })
-    class ImportRealmSubstitutionCustomPreSuffixIT extends AbstractImportIT {
+    @QuarkusTest
+    static class ImportRealmSubstitutionCustomPreSuffixIT extends AbstractImportIT {
         private static final String REALM_NAME = "realm-substitution-custom-pre-suffix";
 
         ImportRealmSubstitutionCustomPreSuffixIT() {
@@ -181,6 +141,15 @@ class ImportRealmSubstitutionIT extends AbstractImportIT {
         @SetSystemProperty(key = "kcc.junit.not-before", value = "1200")
         @SetSystemProperty(key = "kcc.junit.browser-security-headers", value = "{\"xRobotsTag\":\"noindex\"}")
         void shouldCreateRealm() throws IOException {
+            configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                    .varSubstitution(ImmutableImportVarSubstitutionProperties.builder().from(config.getVarSubstitution())
+                            .isEnabled(true)
+                            .prefix("${")
+                            .suffix("}")
+                            .build()
+                    )
+                    .build());
+
             assertThat(System.getProperty("kcc.junit.display-name"), is("<div class=\\\"kc-logo-text\\\"><span>Keycloak</span></div>"));
 
             doImport("0_create_realm.json");

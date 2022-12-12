@@ -22,36 +22,68 @@ package de.adorsys.keycloak.config.mock;
 
 import de.adorsys.keycloak.config.AbstractImportTest;
 import de.adorsys.keycloak.config.model.RealmImport;
-import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
-import de.adorsys.keycloak.config.service.RealmImportService;
+import de.adorsys.keycloak.config.properties.*;
 import de.adorsys.keycloak.config.test.util.KeycloakMock;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Cookie;
-import org.mockserver.springtest.MockServerTest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockserver.model.HttpRequest.request;
 
-@MockServerTest("keycloak.url=http://localhost:${mockServerPort}")
-@TestPropertySource(properties = {
-        "import.remote-state.enabled=false",
-        "import.cache.enabled=false"
-})
+@QuarkusTest
 class CookieMockIT extends AbstractImportTest {
     private MockServerClient mockServerClient;
 
-    @Autowired
-    public KeycloakImportProvider keycloakImportProvider;
-    @Autowired
-    public RealmImportService realmImportService;
-
     CookieMockIT() {
         this.resourcePath = "import-files/simple-realm";
+    }
+
+    @BeforeEach
+    void beforeEach() throws MalformedURLException {
+        mockServerClient = ClientAndServer.startClientAndServer();
+
+        keycloakProvider.setProperties(ImmutableKeycloakConfigProperties.builder()
+                .url(new URL("http://localhost:" + mockServerClient.getPort()))
+                .isSslVerify(true)
+                .loginRealm("master")
+                .grantType("password")
+                .user("someuser")
+                .password("somepassword")
+                .clientSecret("somesecret")
+                .clientId("someclientid")
+                .version("@keycloak.version@")
+                .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
+                        .isEnabled(false)
+                        .timeout(Duration.ofSeconds(10))
+                        .retryDelay(Duration.ofSeconds(20))
+                        .build()
+                )
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(10))
+                .build()
+        );
+
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .remoteState(ImmutableImportRemoteStateProperties.builder().from(config.getRemoteState())
+                        .isEnabled(false)
+                        .build()
+                )
+                .cache(ImmutableImportCacheProperties.builder().from(config.getCache())
+                        .isEnabled(false)
+                        .build()
+                )
+                .build()
+        );
     }
 
     @Test

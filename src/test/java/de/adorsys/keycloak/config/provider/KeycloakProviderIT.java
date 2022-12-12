@@ -20,34 +20,69 @@
 
 package de.adorsys.keycloak.config.provider;
 
-import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.KeycloakProviderException;
+import de.adorsys.keycloak.config.properties.ImmutableKeycloakAvailabilityCheck;
+import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.resource.ManagementPermissions;
+import de.adorsys.keycloak.config.test.util.KeycloakMock;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junitpioneer.jupiter.SetSystemProperty;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
+import org.mockserver.integration.ClientAndServer;
 
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.time.Duration;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockserver.model.HttpRequest.request;
 
 class KeycloakProviderIT {
+    private static KeycloakConfigProperties defaultProperties;
+    private static ClientAndServer mockServerClient;
+
+    @BeforeAll
+    static void beforeAll() throws MalformedURLException {
+        mockServerClient = ClientAndServer.startClientAndServer();
+        defaultProperties = ImmutableKeycloakConfigProperties.builder()
+                .url(new URL("http://localhost:" + mockServerClient.getPort()))
+                .isSslVerify(false)
+                .loginRealm("master")
+                .grantType("password")
+                .user("someuser")
+                .password("somepassword")
+                .clientSecret("somesecret")
+                .clientId("someclientid")
+                .version("@keycloak.version@")
+                .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
+                        .isEnabled(false)
+                        .timeout(Duration.ofSeconds(10))
+                        .retryDelay(Duration.ofSeconds(20))
+                        .build()
+                )
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(10))
+                .build();
+    }
+
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.read-timeout=PT0.01S"
-    })
-    class ResteasyReadTimeout extends AbstractImportIT {
+    class ResteasyReadTimeout  {
         @Test
         void run() {
+            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
+                    .readTimeout(Duration.ofMillis(1))
+                    .build());
+
             // very low read timeout leads inevitably to a read timeout, which in turn shows that the configuration is applied
             ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getInstance);
             assertNotNull(thrown.getCause());
@@ -57,14 +92,15 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.url=https://10.255.255.1",
-            "keycloak.connect-timeout=PT0.01S"
-    })
-    class ResteasyConnectTimeout extends AbstractImportIT {
+    class ResteasyConnectTimeout  {
         @Test
         @Timeout(value = 2L)
-        void run() {
+        void run() throws MalformedURLException {
+            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
+                    .url(new URL("https://10.255.255.1"))
+                    .connectTimeout(Duration.ofMillis(10))
+                    .build());
+
             // connect timeout since IP is not reachable - test fails if it exceeds one second which in turn shows that
             // the configuration is applied
             ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getInstance);
@@ -75,18 +111,19 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.url=https://localhost:1",
-            "keycloak.availability-check.enabled=true",
-            "keycloak.availability-check.timeout=300ms",
-            "keycloak.availability-check.retry-delay=100ms",
-    })
-    class RaiseTimeout extends AbstractImportIT {
-        @Autowired
-        public KeycloakProvider keycloakProvider;
-
+    class RaiseTimeout  {
         @Test
-        void run() {
+        void run() throws MalformedURLException {
+            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
+                    .url(new URL("https://localhost:1"))
+                    .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
+                            .isEnabled(true)
+                            .timeout(Duration.ofMillis(300))
+                            .retryDelay(Duration.ofMillis(100))
+                            .build()
+                    )
+                    .build());
+
             KeycloakProviderException thrown = assertThrows(KeycloakProviderException.class, keycloakProvider::getInstance);
 
             assertThat(thrown.getMessage(), matchesPattern("Could not connect to keycloak in 0 seconds: .*$"));
@@ -94,15 +131,11 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.url=${keycloak.baseUrl}/z/"
-    })
-    class InvalidServerUrl extends AbstractImportIT {
-        @Autowired
-        public KeycloakProvider keycloakProvider;
-
+    class InvalidServerUrl  {
         @Test
         void run() {
+            var keycloakProvider = new KeycloakProvider(defaultProperties);
+
             assertThrows(NotFoundException.class, keycloakProvider::getKeycloakVersion);
         }
     }
@@ -110,15 +143,12 @@ class KeycloakProviderIT {
     @Nested
     @SetSystemProperty(key = "http.proxyHost", value = "localhost")
     @SetSystemProperty(key = "http.proxyPort", value = "2")
-    @TestPropertySource(properties = {
-            "keycloak.url=https://keycloak:8080/auth/",
-    })
-    class HttpProxySystemProperties extends AbstractImportIT {
-        @Autowired
-        public KeycloakProvider keycloakProvider;
+    class HttpProxySystemProperties  {
 
         @Test
         void testHttpProxy() {
+            var keycloakProvider = new KeycloakProvider(defaultProperties);
+
             ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getKeycloakVersion);
 
             assertThat(thrown.getMessage(), matchesPattern(".+ Connect to localhost:2 .+ failed: .+"));
@@ -126,13 +156,13 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.url=https://keycloak:8080/auth/",
-            "keycloak.http-proxy=http://localhost:2",
-    })
-    class HttpProxySpringProperties extends AbstractImportIT {
+    class HttpProxySpringProperties  {
         @Test
-        void run() {
+        void run() throws MalformedURLException {
+            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
+                    .httpProxy(new URL("http://localhost:2"))
+                    .build());
+
             ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getKeycloakVersion);
 
             assertThat(thrown.getMessage(), matchesPattern(".+ Connect to localhost:2 .+ failed: .+"));
@@ -140,21 +170,26 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    class GetCustomApiProxy extends AbstractImportIT {
+    class GetCustomApiProxy  {
         @Test
         void run() {
+            mockServerClient.when(request().withPath("/realms/master/protocol/openid-connect/token")).respond(KeycloakMock::grantToken);
+
+            var keycloakProvider = new KeycloakProvider(defaultProperties);
+
             ManagementPermissions proxy = keycloakProvider.getCustomApiProxy(ManagementPermissions.class);
             assertNotNull(proxy);
         }
     }
 
     @Nested
-    @TestPropertySource(properties = {
-            "keycloak.url=http://crappy|url"
-    })
-    class GetCustomApiProxyInvalidUri extends AbstractImportIT {
+    class GetCustomApiProxyInvalidUri  {
         @Test
-        void run() {
+        void run() throws MalformedURLException {
+            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
+                    .url(new URL("http://crappy|url"))
+                    .build());
+
             RuntimeException thrown = assertThrows(RuntimeException.class, () -> keycloakProvider.getCustomApiProxy(ManagementPermissions.class));
             assertNotNull(thrown.getCause());
             assertTrue(thrown.getCause() instanceof URISyntaxException);

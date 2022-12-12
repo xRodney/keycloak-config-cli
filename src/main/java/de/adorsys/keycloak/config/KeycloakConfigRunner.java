@@ -22,53 +22,41 @@ package de.adorsys.keycloak.config;
 
 import de.adorsys.keycloak.config.model.KeycloakImport;
 import de.adorsys.keycloak.config.model.RealmImport;
-import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
 import de.adorsys.keycloak.config.service.RealmImportService;
+import io.quarkus.runtime.QuarkusApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.ExitCodeGenerator;
-import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Singleton;
 
-@Component
-public class KeycloakConfigRunner implements CommandLineRunner, ExitCodeGenerator {
+@Singleton
+public class KeycloakConfigRunner implements QuarkusApplication {
     private static final Logger logger = LoggerFactory.getLogger(KeycloakConfigRunner.class);
     private static final long START_TIME = System.currentTimeMillis();
 
     private final KeycloakImportProvider keycloakImportProvider;
     private final RealmImportService realmImportService;
-    private final ImportConfigProperties importConfigProperties;
-
-    private int exitCode = 0;
 
     @Autowired
     public KeycloakConfigRunner(
             KeycloakImportProvider keycloakImportProvider,
-            RealmImportService realmImportService,
-            ImportConfigProperties importConfigProperties) {
+            RealmImportService realmImportService) {
         this.keycloakImportProvider = keycloakImportProvider;
         this.realmImportService = realmImportService;
-        this.importConfigProperties = importConfigProperties;
     }
 
     @Override
-    public int getExitCode() {
-        return exitCode;
-    }
-
-    @Override
-    public void run(String... args) {
+    public int run(String... args) {
+        int exitCode = 0;
         try {
-            Collection<String> importLocations = importConfigProperties.getFiles().getLocations();
-            KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(importLocations);
+            String[] locations = args.length == 0 ? new String[] {"."} : args;
+            KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(locations);
 
             Map<String, Map<String, List<RealmImport>>> realmImports = keycloakImport.getRealmImports();
 
@@ -95,5 +83,7 @@ public class KeycloakConfigRunner implements CommandLineRunner, ExitCodeGenerato
             String formattedTime = new SimpleDateFormat("mm:ss.SSS").format(new Date(totalTime));
             logger.info("keycloak-config-cli running in {}.", formattedTime);
         }
+
+        return exitCode;
     }
 }

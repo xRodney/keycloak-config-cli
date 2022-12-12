@@ -21,44 +21,28 @@
 package de.adorsys.keycloak.config.properties;
 
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
+import javax.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-// From: https://tuhrig.de/testing-configurationproperties-in-spring-boot/
-@ExtendWith(SpringExtension.class)
 @ExtendWith(GithubActionsExtension.class)
-@SpringBootTest(classes = {KeycloakConfigPropertiesTest.TestConfiguration.class})
-@TestPropertySource(properties = {
-        "spring.main.log-startup-info=false",
-        "keycloak.ssl-verify=false",
-        "keycloak.url=https://localhost:8443",
-        "keycloak.login-realm=moped",
-        "keycloak.client-id=moped",
-        "keycloak.client-id=moped-client",
-        "keycloak.user=otherUser",
-        "keycloak.password=otherPassword",
-        "keycloak.http-proxy=http://localhost:8080",
-        "keycloak.connect-timeout=2m",
-        "keycloak.read-timeout=20s",
-        "keycloak.availability-check.enabled=true",
-        "keycloak.availability-check.timeout=60s",
-        "keycloak.availability-check.retry-delay=10s"
-})
+@QuarkusTest
+@TestProfile(KeycloakConfigPropertiesTest.TestConfiguration.class)
 class KeycloakConfigPropertiesTest {
 
-    @Autowired
+    @Inject
     private KeycloakConfigProperties properties;
 
     @Test
@@ -69,7 +53,7 @@ class KeycloakConfigPropertiesTest {
         assertThat(properties.getPassword(), is("otherPassword"));
         assertThat(properties.getUrl(), is(new URL("https://localhost:8443")));
         assertThat(properties.isSslVerify(), is(false));
-        assertThat(properties.getHttpProxy(), is(new URL("http://localhost:8080")));
+        assertThat(properties.getHttpProxy(), is(Optional.of(new URL("http://localhost:8080"))));
         assertThat(properties.getConnectTimeout(), is(Duration.ofSeconds(120)));
         assertThat(properties.getReadTimeout(), is(Duration.ofSeconds(20)));
         assertThat(properties.getAvailabilityCheck().isEnabled(), is(true));
@@ -77,8 +61,24 @@ class KeycloakConfigPropertiesTest {
         assertThat(properties.getAvailabilityCheck().getRetryDelay(), is(Duration.ofSeconds(10L)));
     }
 
-    @EnableConfigurationProperties(KeycloakConfigProperties.class)
-    public static class TestConfiguration {
-        // nothing
+    public static class TestConfiguration implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.ofEntries(
+                    Map.entry("spring.main.log-startup-info", "false"),
+                    Map.entry("keycloak.ssl-verify", "false"),
+                    Map.entry("keycloak.url", "https://localhost:8443"),
+                    Map.entry("keycloak.login-realm", "moped"),
+                    Map.entry("keycloak.client-id", "moped-client"),
+                    Map.entry("keycloak.user", "otherUser"),
+                    Map.entry("keycloak.password", "otherPassword"),
+                    Map.entry("keycloak.http-proxy", "http://localhost:8080"),
+                    Map.entry("keycloak.connect-timeout", "2m"),
+                    Map.entry("keycloak.read-timeout", "20s"),
+                    Map.entry("keycloak.availability-check.enabled", "true"),
+                    Map.entry("keycloak.availability-check.timeout", "60s"),
+                    Map.entry("keycloak.availability-check.retry-delay", "10s")
+            );
+        }
     }
 }

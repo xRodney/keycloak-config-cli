@@ -20,99 +20,68 @@
 
 package de.adorsys.keycloak.config;
 
-import com.ginsberg.junit.exit.ExpectSystemExitWithStatus;
 import de.adorsys.keycloak.config.exception.InvalidImportException;
+import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
+
+import javax.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@QuarkusTest
 class CommandLineImportIT extends AbstractImportIT {
-    @Nested
-    @ContextConfiguration()
-    class CommandLineImportFilesIT extends AbstractImportIT {
-        @Test
-        @ExpectSystemExitWithStatus(0)
-        void testImportFile() {
-            KeycloakConfigApplication.main(new String[]{
-                    "--import.files.locations=src/test/resources/import-files/cli/file.json"
-            });
+    @Inject
+    private KeycloakConfigRunner runner;
 
-            RealmRepresentation fileRealm = keycloakProvider.getInstance().realm("file").toRepresentation();
+    @Test
+    void testImportFile() {
+        var exitCode = runner.run(
+                "src/test/resources/import-files/cli/file.json"
+        );
+        assertThat(exitCode, is(0));
 
-            assertThat(fileRealm.getRealm(), is("file"));
-            assertThat(fileRealm.isEnabled(), is(true));
-        }
+        RealmRepresentation fileRealm = keycloakProvider.getInstance().realm("file").toRepresentation();
 
-        @Test
-        @ExpectSystemExitWithStatus(0)
-        void testImportDirectory() {
-            KeycloakConfigApplication.main(new String[]{
-                    "--keycloak.sslVerify=false",
-                    "--import.files.locations=src/test/resources/import-files/cli/dir/*"
-            });
-
-            RealmRepresentation file1Realm = keycloakProvider.getInstance().realm("file1").toRepresentation();
-
-            assertThat(file1Realm.getRealm(), is("file1"));
-            assertThat(file1Realm.isEnabled(), is(true));
-
-            RealmRepresentation file2Realm = keycloakProvider.getInstance().realm("file2").toRepresentation();
-
-            assertThat(file2Realm.getRealm(), is("file2"));
-            assertThat(file2Realm.isEnabled(), is(true));
-        }
-
-        @Test
-        @ExpectSystemExitWithStatus(1)
-        @SuppressWarnings({"java:S2699"})
-        void testImportInvalid() {
-            KeycloakConfigApplication.main(new String[]{
-                    "--import.files.locations=invalid",
-                    "--logging.level.de.adorsys.keycloak.config.KeycloakConfigRunner=error",
-            });
-        }
+        assertThat(fileRealm.getRealm(), is("file"));
+        assertThat(fileRealm.isEnabled(), is(true));
     }
 
-    @Nested
-    @ContextConfiguration()
-    @TestPropertySource(properties = {
-            "import.files.locations=src/test/resources/application-IT.properties",
-    })
-    class CommandLineImportInvalidIT extends AbstractImportIT {
-        @Autowired
-        KeycloakConfigRunner runner;
+    @Test
+    void testImportDirectory() {
+        var exitCode = runner.run(
+                "src/test/resources/import-files/cli/dir"
+        );
+        assertThat(exitCode, is(0));
 
-        @Test
-        void testInvalidFileFormatException() {
-            InvalidImportException thrown = assertThrows(InvalidImportException.class, runner::run);
+        RealmRepresentation file1Realm = keycloakProvider.getInstance().realm("file1").toRepresentation();
 
-            assertThat(thrown.getMessage(), startsWith("Unable to parse file 'file:src/test/resources/application-IT.properties': Cannot construct instance of `de.adorsys.keycloak.config.model.RealmImport`"));
-        }
+        assertThat(file1Realm.getRealm(), is("file1"));
+        assertThat(file1Realm.isEnabled(), is(true));
+
+        RealmRepresentation file2Realm = keycloakProvider.getInstance().realm("file2").toRepresentation();
+
+        assertThat(file2Realm.getRealm(), is("file2"));
+        assertThat(file2Realm.isEnabled(), is(true));
     }
 
-    @Nested
-    @ContextConfiguration()
-    @TestPropertySource(properties = {
-            "import.files.locations=invalid"
-    })
-    class CommandLineImportNotExistsExceptionIT extends AbstractImportIT {
-        @Autowired
-        KeycloakConfigRunner runner;
+    @Test
+    void testInvalidFileFormatException() {
+        InvalidImportException thrown = assertThrows(InvalidImportException.class, () ->
+                runner.run("src/test/resources/application-IT.properties"));
 
-        @Test
-        void testInvalidImportException() {
-            InvalidImportException thrown = assertThrows(InvalidImportException.class, runner::run);
+        assertThat(thrown.getMessage(), stringContainsInOrder("Unable to parse file", "application-IT.properties", "Cannot construct instance of `de.adorsys.keycloak.config.model.RealmImport`"));
+    }
 
-            assertThat(thrown.getMessage(), Matchers.is("Unable to proceed resource 'URL [file:invalid]': invalid (No such file or directory)"));
-        }
+    @Test
+    void testInvalidImportException() {
+        InvalidImportException thrown = assertThrows(InvalidImportException.class, () ->
+                runner.run("invalid"));
+
+        assertThat(thrown.getMessage(), Matchers.startsWith("No files matching 'invalid'!"));
     }
 }

@@ -23,6 +23,7 @@ package de.adorsys.keycloak.config;
 import de.adorsys.keycloak.config.extensions.ContainerLogsExtension;
 import de.adorsys.keycloak.config.util.VersionUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -35,6 +36,10 @@ import java.util.List;
 
 @ExtendWith(ContainerLogsExtension.class)
 abstract public class AbstractImportIT extends AbstractImportTest {
+    // config for LdapExtension
+    public static int LDAP_PORT = 33389;
+    public static String LDAP_HOST = "host.testcontainers.internal";
+
     public static final ToStringConsumer KEYCLOAK_CONTAINER_LOGS = new ToStringConsumer();
 
     @Container
@@ -46,6 +51,8 @@ abstract public class AbstractImportIT extends AbstractImportTest {
     protected static final String KEYCLOAK_LOG_LEVEL = System.getProperty("keycloak.loglevel", "INFO");
 
     static {
+        Testcontainers.exposeHostPorts(LDAP_PORT);
+
         KEYCLOAK_CONTAINER = new GenericContainer<>(DockerImageName.parse(KEYCLOAK_IMAGE + ":" + KEYCLOAK_VERSION + KEYCLOAK_TAG_SUFFIX))
                 .withExposedPorts(8080)
                 .withEnv("KEYCLOAK_USER", "admin")
@@ -85,14 +92,15 @@ abstract public class AbstractImportIT extends AbstractImportTest {
             // KEYCLOAK_CONTAINER.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("\uD83D\uDC33 [" + KEYCLOAK_CONTAINER.getDockerImageName() + "]")));
             System.setProperty("keycloak.user", KEYCLOAK_CONTAINER.getEnvMap().get("KEYCLOAK_USER"));
             System.setProperty("keycloak.password", KEYCLOAK_CONTAINER.getEnvMap().get("KEYCLOAK_PASSWORD"));
-            System.setProperty("keycloak.baseUrl", String.format(
+            var baseUrl = String.format(
                     "http://%s:%d", KEYCLOAK_CONTAINER.getContainerIpAddress(), KEYCLOAK_CONTAINER.getMappedPort(8080)
-            ));
+            );
+            //System.setProperty("keycloak.baseUrl", baseUrl);
 
             if (isLegacyDistribution) {
-                System.setProperty("keycloak.url", System.getProperty("keycloak.baseUrl") + "/auth/");
+                System.setProperty("keycloak.url", baseUrl + "/auth/");
             } else {
-                System.setProperty("keycloak.url", System.getProperty("keycloak.baseUrl"));
+                System.setProperty("keycloak.url", baseUrl);
             }
         }
     }

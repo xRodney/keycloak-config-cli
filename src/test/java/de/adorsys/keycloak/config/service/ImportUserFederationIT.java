@@ -22,7 +22,12 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.extensions.LdapExtension;
+import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportVarSubstitutionProperties;
+import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -30,7 +35,6 @@ import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,16 +43,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
-@TestPropertySource(properties = {
-        "import.behaviors.sync-user-federation=true",
-        "import.behaviors.skip-attributes-for-federated-user=true",
-        "import.var-substitution.enabled=true"
-})
 @SuppressWarnings({"SameParameterValue"})
+@QuarkusTest
 class ImportUserFederationIT extends AbstractImportIT {
     @RegisterExtension
     final static LdapExtension ldapExtension = new LdapExtension(
-            "dc=example,dc=org", "embedded-ldap.ldif", "cn=admin,dc=example,dc=org", "admin123"
+            "dc=example,dc=org", "/embedded-ldap.ldif", "cn=admin,dc=example,dc=org", "admin123"
     );
 
     private static final String REALM_NAME = "realmWithLdap";
@@ -56,6 +56,21 @@ class ImportUserFederationIT extends AbstractImportIT {
 
     public ImportUserFederationIT() {
         this.resourcePath = "import-files/user-federation";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .behaviors(ImmutableImportBehaviorsProperties.builder().from(config.getBehaviors())
+                        .isSyncUserFederation(true)
+                        .isSkipAttributesForFederatedUser(true)
+                        .build()
+                )
+                .varSubstitution(ImmutableImportVarSubstitutionProperties.builder().from(config.getVarSubstitution())
+                        .isEnabled(true)
+                        .build()
+                )
+                .build());
     }
 
     @Test

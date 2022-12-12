@@ -80,11 +80,11 @@ public class UserImportService {
         }
 
         Consumer<UserRepresentation> loop = user -> importUser(realmImport.getRealm(), user);
-        if (importConfigProperties.isParallel()) {
-            users.parallelStream().forEach(loop);
-        } else {
-            users.forEach(loop);
-        }
+        //if (importConfigProperties.isParallel()) {
+        //    users.parallelStream().forEach(loop);
+        //} else {
+        users.forEach(loop);
+        //}
     }
 
     private void importUser(String realmName, UserRepresentation user) {

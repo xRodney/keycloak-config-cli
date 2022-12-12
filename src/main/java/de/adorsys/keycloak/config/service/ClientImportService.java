@@ -103,11 +103,11 @@ public class ClientImportService {
             List<ClientRepresentation> clients
     ) {
         Consumer<ClientRepresentation> loop = client -> createOrUpdateClient(realmImport, client);
-        if (importConfigProperties.isParallel()) {
-            clients.parallelStream().forEach(loop);
-        } else {
-            clients.forEach(loop);
-        }
+        //if (importConfigProperties.isParallel()) {
+        //    clients.parallelStream().forEach(loop);
+        //} else {
+        clients.forEach(loop);
+        //}
     }
 
     private void deleteClientsMissingInImport(

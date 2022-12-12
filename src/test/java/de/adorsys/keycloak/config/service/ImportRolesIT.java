@@ -24,14 +24,14 @@ import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
 import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
 import de.adorsys.keycloak.config.util.VersionUtil;
-import org.junit.jupiter.api.Nested;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("java:S5961")
+@QuarkusTest
 class ImportRolesIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithRoles";
 
@@ -1052,33 +1053,29 @@ class ImportRolesIT extends AbstractImportIT {
         assertThat(composites.getRealm(), is(nullValue()));
     }
 
-    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-    @Nested
     @Order(60)
-    @TestPropertySource(properties = {
-            "import.behaviors.remove-default-role-from-user=true"
-    })
-    class RemoveDefaultRoleTest {
-        @Autowired
-        public RealmImportService realmImportService;
+    @Test
+    void shouldCreateUserAndRemoveDefaultRole() throws IOException {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .behaviors(ImmutableImportBehaviorsProperties.builder().from(config.getBehaviors())
+                        .isRemoveDefaultRoleFromUser(true)
+                        .build()
+                )
+                .build());
 
-        @Test
-        @Order(0)
-        void shouldCreateUserAndRemoveDefaultRole() throws IOException {
-            doImport("60_update_realm__add_user_with_realm_role.json", realmImportService);
+        doImport("60_update_realm__add_user_with_realm_role.json", realmImportService);
 
-            RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).partialExport(true, true);
+        RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).partialExport(true, true);
 
-            assertThat(realm.getRealm(), is(REALM_NAME));
-            assertThat(realm.isEnabled(), is(true));
+        assertThat(realm.getRealm(), is(REALM_NAME));
+        assertThat(realm.isEnabled(), is(true));
 
-            List<String> userRealmLevelRoles = keycloakRepository.getUserRealmLevelRoles(
-                    REALM_NAME,
-                    "myuser6"
-            );
+        List<String> userRealmLevelRoles = keycloakRepository.getUserRealmLevelRoles(
+                REALM_NAME,
+                "myuser6"
+        );
 
-            assertThat(userRealmLevelRoles, hasItem("my_realm_role"));
-            assertThat(userRealmLevelRoles, not(hasItem("default-roles-" + REALM_NAME.toLowerCase())));
-        }
+        assertThat(userRealmLevelRoles, hasItem("my_realm_role"));
+        assertThat(userRealmLevelRoles, not(hasItem("default-roles-" + REALM_NAME.toLowerCase())));
     }
 }

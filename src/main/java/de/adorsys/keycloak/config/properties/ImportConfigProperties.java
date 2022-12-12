@@ -20,209 +20,86 @@
 
 package de.adorsys.keycloak.config.properties;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
-import org.springframework.validation.annotation.Validated;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
+import org.immutables.value.Value;
 
-import java.util.Collection;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import java.util.List;
 
-@ConfigurationProperties(prefix = "import", ignoreUnknownFields = false)
-@ConstructorBinding
-@Validated
+@ConfigMapping(prefix = "import")
 @SuppressWarnings({"java:S107"})
-public class ImportConfigProperties {
-    public static final String REALM_STATE_ATTRIBUTE_COMMON_PREFIX = "de.adorsys.keycloak.config";
-    public static final String REALM_CHECKSUM_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".import-checksum-{0}";
-    public static final String REALM_STATE_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".state-{0}-{1}";
+@Value.Immutable
+public interface ImportConfigProperties {
+    String REALM_STATE_ATTRIBUTE_COMMON_PREFIX = "de.adorsys.keycloak.config";
+    String REALM_CHECKSUM_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".import-checksum-{0}";
+    String REALM_STATE_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".state-{0}-{1}";
 
-    @NotNull
-    private final boolean validate;
+    @WithName("validate")
+    boolean isValidate();
 
-    @NotNull
-    private final boolean parallel;
+    // Parallel import is unsupported in Operator
+    // @WithName("parallel")
+    // boolean isParallel();
 
-    @Valid
-    private final ImportFilesProperties files;
+    @WithName("files")
+    ImportFilesProperties getFiles();
 
-    @Valid
-    private final ImportVarSubstitutionProperties varSubstitution;
+    @WithName("var-substitution")
+    ImportVarSubstitutionProperties getVarSubstitution();
 
-    @Valid
-    private final ImportBehaviorsProperties behaviors;
+    @WithName("behaviors")
+    ImportBehaviorsProperties getBehaviors();
 
-    @Valid
-    private final ImportCacheProperties cache;
+    @WithName("cache")
+    ImportCacheProperties getCache();
 
-    @Valid
-    private final ImportManagedProperties managed;
+    @WithName("managed")
+    ImportManagedProperties getManaged();
 
-    @Valid
-    private final ImportRemoteStateProperties remoteState;
-
-    public ImportConfigProperties(boolean validate, boolean parallel,
-                                  ImportFilesProperties files, ImportVarSubstitutionProperties varSubstitution,
-                                  ImportBehaviorsProperties behaviors, ImportCacheProperties cache, ImportManagedProperties managed,
-                                  ImportRemoteStateProperties remoteState
-    ) {
-        this.validate = validate;
-        this.parallel = parallel;
-        this.files = files;
-        this.varSubstitution = varSubstitution;
-        this.behaviors = behaviors;
-        this.cache = cache;
-        this.managed = managed;
-        this.remoteState = remoteState;
-    }
-
-    public boolean isValidate() {
-        return validate;
-    }
-
-    public boolean isParallel() {
-        return parallel;
-    }
-
-    public ImportFilesProperties getFiles() {
-        return files;
-    }
-
-    public ImportVarSubstitutionProperties getVarSubstitution() {
-        return varSubstitution;
-    }
-
-    public ImportBehaviorsProperties getBehaviors() {
-        return behaviors;
-    }
-
-    public ImportCacheProperties getCache() {
-        return cache;
-    }
-
-    public ImportManagedProperties getManaged() {
-        return managed;
-    }
-
-    public ImportRemoteStateProperties getRemoteState() {
-        return remoteState;
-    }
+    @WithName("remote-state")
+    ImportRemoteStateProperties getRemoteState();
 
     @SuppressWarnings("unused")
-    public static class ImportManagedProperties {
-        @NotNull
-        private final ImportManagedPropertiesValues requiredAction;
+    @Value.Immutable
+    interface ImportManagedProperties {
+        @WithName("required-action")
+        ImportManagedPropertiesValues getRequiredAction();
 
-        @NotNull
-        private final ImportManagedPropertiesValues group;
+        @WithName("group")
+        ImportManagedPropertiesValues getGroup();
 
-        @NotNull
-        private final ImportManagedPropertiesValues clientScope;
+        @WithName("client-scope")
+        ImportManagedPropertiesValues getClientScope();
 
-        @NotNull
-        private final ImportManagedPropertiesValues scopeMapping;
+        @WithName("scope-mapping")
+        ImportManagedPropertiesValues getScopeMapping();
 
-        @NotNull
-        private final ImportManagedPropertiesValues clientScopeMapping;
+        @WithName("client-scope-mapping")
+        ImportManagedPropertiesValues getClientScopeMapping();
 
-        @NotNull
-        private final ImportManagedPropertiesValues component;
+        @WithName("component")
+        ImportManagedPropertiesValues getComponent();
 
-        @NotNull
-        private final ImportManagedPropertiesValues subComponent;
+        @WithName("sub-component")
+        ImportManagedPropertiesValues getSubComponent();
 
-        @NotNull
-        private final ImportManagedPropertiesValues authenticationFlow;
+        @WithName("authentication-flow")
+        ImportManagedPropertiesValues getAuthenticationFlow();
 
-        @NotNull
-        private final ImportManagedPropertiesValues identityProvider;
+        @WithName("identity-provider")
+        ImportManagedPropertiesValues getIdentityProvider();
 
-        @NotNull
-        private final ImportManagedPropertiesValues identityProviderMapper;
+        @WithName("identity-provider-mapper")
+        ImportManagedPropertiesValues getIdentityProviderMapper();
 
-        @NotNull
-        private final ImportManagedPropertiesValues role;
+        @WithName("role")
+        ImportManagedPropertiesValues getRole();
 
-        @NotNull
-        private final ImportManagedPropertiesValues client;
+        @WithName("client")
+        ImportManagedPropertiesValues getClient();
 
-        @NotNull
-        private final ImportManagedPropertiesValues clientAuthorizationResources;
-
-        public ImportManagedProperties(ImportManagedPropertiesValues requiredAction, ImportManagedPropertiesValues group,
-                                       ImportManagedPropertiesValues clientScope, ImportManagedPropertiesValues scopeMapping,
-                                       ImportManagedPropertiesValues clientScopeMapping, ImportManagedPropertiesValues component,
-                                       ImportManagedPropertiesValues subComponent, ImportManagedPropertiesValues authenticationFlow,
-                                       ImportManagedPropertiesValues identityProvider, ImportManagedPropertiesValues identityProviderMapper,
-                                       ImportManagedPropertiesValues role, ImportManagedPropertiesValues client,
-                                       ImportManagedPropertiesValues clientAuthorizationResources) {
-            this.requiredAction = requiredAction;
-            this.group = group;
-            this.clientScope = clientScope;
-            this.scopeMapping = scopeMapping;
-            this.clientScopeMapping = clientScopeMapping;
-            this.component = component;
-            this.subComponent = subComponent;
-            this.authenticationFlow = authenticationFlow;
-            this.identityProvider = identityProvider;
-            this.identityProviderMapper = identityProviderMapper;
-            this.role = role;
-            this.client = client;
-            this.clientAuthorizationResources = clientAuthorizationResources;
-        }
-
-        public ImportManagedPropertiesValues getRequiredAction() {
-            return requiredAction;
-        }
-
-        public ImportManagedPropertiesValues getClientScope() {
-            return clientScope;
-        }
-
-        public ImportManagedPropertiesValues getScopeMapping() {
-            return scopeMapping;
-        }
-
-        public ImportManagedPropertiesValues getClientScopeMapping() {
-            return clientScopeMapping;
-        }
-
-        public ImportManagedPropertiesValues getComponent() {
-            return component;
-        }
-
-        public ImportManagedPropertiesValues getSubComponent() {
-            return subComponent;
-        }
-
-        public ImportManagedPropertiesValues getAuthenticationFlow() {
-            return authenticationFlow;
-        }
-
-        public ImportManagedPropertiesValues getGroup() {
-            return group;
-        }
-
-        public ImportManagedPropertiesValues getIdentityProvider() {
-            return identityProvider;
-        }
-
-        public ImportManagedPropertiesValues getIdentityProviderMapper() {
-            return identityProviderMapper;
-        }
-
-        public ImportManagedPropertiesValues getRole() {
-            return role;
-        }
-
-        public ImportManagedPropertiesValues getClient() {
-            return client;
-        }
-
-        public ImportManagedPropertiesValues getClientAuthorizationResources() {
-            return clientAuthorizationResources;
-        }
+        @WithName("client-authorization-resources")
+        ImportManagedPropertiesValues getClientAuthorizationResources();
 
         public enum ImportManagedPropertiesValues {
             FULL, NO_DELETE
@@ -230,159 +107,73 @@ public class ImportConfigProperties {
     }
 
     @SuppressWarnings("unused")
-    public static class ImportFilesProperties {
-        @NotNull
-        private final Collection<String> locations;
+    @Value.Immutable
+    interface ImportFilesProperties {
+        @WithName("locations")
+        List<String> getLocations();
 
-        @NotNull
-        private final Collection<String> excludes;
+        @WithName("excludes")
+        List<String> getExcludes();
 
-        @NotNull
-        private final boolean includeHiddenFiles;
+        @WithName("include-hidden-files")
+        boolean isIncludeHiddenFiles();
 
-        public ImportFilesProperties(Collection<String> locations, Collection<String> excludes, boolean includeHiddenFiles) {
-            this.locations = locations;
-            this.excludes = excludes;
-            this.includeHiddenFiles = includeHiddenFiles;
-        }
-
-        public Collection<String> getLocations() {
-            return locations;
-        }
-
-        public Collection<String> getExcludes() {
-            return excludes;
-        }
-
-        public boolean isIncludeHiddenFiles() {
-            return includeHiddenFiles;
-        }
+        @WithName("pattern")
+        List<String> getPattern();
     }
 
     @SuppressWarnings("unused")
-    public static class ImportVarSubstitutionProperties {
-        @NotNull
-        private final boolean enabled;
+    @Value.Immutable
+    interface ImportVarSubstitutionProperties {
+        @WithName("enabled")
+        boolean isEnabled();
 
-        @NotNull
-        private final boolean nested;
+        @WithName("nested")
+        boolean isNested();
 
-        @NotNull
-        private final boolean undefinedIsError;
+        @WithName("undefined-is-error")
+        boolean isUndefinedIsError();
 
-        @NotNull
-        private final String prefix;
+        @WithName("prefix")
+        String getPrefix();
 
-        @NotNull
-        private final String suffix;
-
-        public ImportVarSubstitutionProperties(boolean enabled, boolean nested, boolean undefinedIsError, String prefix, String suffix) {
-            this.enabled = enabled;
-            this.nested = nested;
-            this.undefinedIsError = undefinedIsError;
-            this.prefix = prefix;
-            this.suffix = suffix;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public boolean isNested() {
-            return nested;
-        }
-
-        public boolean isUndefinedIsError() {
-            return undefinedIsError;
-        }
-
-        public String getPrefix() {
-            return prefix;
-        }
-
-        public String getSuffix() {
-            return suffix;
-        }
+        @WithName("suffix")
+        String getSuffix();
     }
 
     @SuppressWarnings("unused")
-    public static class ImportBehaviorsProperties {
-        @NotNull
-        private final boolean syncUserFederation;
+    @Value.Immutable
+    interface ImportBehaviorsProperties {
+        @WithName("sync-user-federation")
+        boolean isSyncUserFederation();
 
-        @NotNull
-        private final boolean removeDefaultRoleFromUser;
+        @WithName("remove-default-role-from-user")
+        boolean isRemoveDefaultRoleFromUser();
 
-        @NotNull
-        private final boolean skipAttributesForFederatedUser;
-
-        public ImportBehaviorsProperties(boolean syncUserFederation, boolean removeDefaultRoleFromUser, boolean skipAttributesForFederatedUser) {
-            this.syncUserFederation = syncUserFederation;
-            this.removeDefaultRoleFromUser = removeDefaultRoleFromUser;
-            this.skipAttributesForFederatedUser = skipAttributesForFederatedUser;
-        }
-
-        public boolean isSyncUserFederation() {
-            return syncUserFederation;
-        }
-
-        public boolean isRemoveDefaultRoleFromUser() {
-            return removeDefaultRoleFromUser;
-        }
-
-        public boolean isSkipAttributesForFederatedUser() {
-            return skipAttributesForFederatedUser;
-        }
+        @WithName("skip-attributes-for-federated-user")
+        boolean isSkipAttributesForFederatedUser();
     }
 
     @SuppressWarnings("unused")
-    public static class ImportCacheProperties {
-        @NotNull
-        private final boolean enabled;
+    @Value.Immutable
+    interface ImportCacheProperties {
+        @WithName("enabled")
+        boolean isEnabled();
 
-        @NotNull
-        private final String key;
-
-        public ImportCacheProperties(boolean enabled, String key) {
-            this.enabled = enabled;
-            this.key = key;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public String getKey() {
-            return key;
-        }
+        @WithName("key")
+        String getKey();
     }
 
     @SuppressWarnings("unused")
-    public static class ImportRemoteStateProperties {
-        @NotNull
-        private final boolean enabled;
+    @Value.Immutable
+    interface ImportRemoteStateProperties {
+        @WithName("enabled")
+        boolean isEnabled();
 
-        private final String encryptionKey;
+        @WithName("encryption-key")
+        String getEncryptionKey();
 
-        @Pattern(regexp = "^[A-Fa-f0-9]+$")
-        private final String encryptionSalt;
-
-        public ImportRemoteStateProperties(boolean enabled, String encryptionKey, String encryptionSalt) {
-            this.enabled = enabled;
-            this.encryptionKey = encryptionKey;
-            this.encryptionSalt = encryptionSalt;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public String getEncryptionKey() {
-            return encryptionKey;
-        }
-
-        public String getEncryptionSalt() {
-            return encryptionSalt;
-        }
+        @WithName("encryption-salt")
+        String getEncryptionSalt();
     }
 }

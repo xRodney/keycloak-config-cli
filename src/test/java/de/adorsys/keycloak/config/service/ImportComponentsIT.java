@@ -23,6 +23,11 @@ package de.adorsys.keycloak.config.service;
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportManagedProperties;
+import de.adorsys.keycloak.config.properties.ImportConfigProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
@@ -31,7 +36,6 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.representations.idm.ComponentExportRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,15 +48,23 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@TestPropertySource(properties = {
-        "import.managed.component=full"
-})
 @SuppressWarnings({"java:S5961", "java:S5976", "SameParameterValue", "CommentedOutCode"})
+@QuarkusTest
 class ImportComponentsIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithComponents";
 
     ImportComponentsIT() {
         this.resourcePath = "import-files/components";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .managed(ImmutableImportManagedProperties.builder().from(config.getManaged())
+                        .component(ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues.FULL)
+                        .build()
+                )
+                .build());
     }
 
     @Test

@@ -20,163 +20,82 @@
 
 package de.adorsys.keycloak.config.properties;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
-import org.springframework.validation.annotation.Validated;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.immutables.value.Value;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@ConfigurationProperties(prefix = "keycloak", ignoreUnknownFields = false)
-@ConstructorBinding
-@Validated
+@ConfigMapping(prefix = "keycloak")
 @SuppressWarnings({"java:S107"})
-public class KeycloakConfigProperties {
+@Value.Immutable
+public interface KeycloakConfigProperties {
 
     @NotBlank
-    private final String loginRealm;
+    @WithName("login-realm")
+    String getLoginRealm();
 
     @NotBlank
-    private final String clientId;
+    @WithName("client-id")
+    String getClientId();
 
     @NotNull
-    private final String version;
+    @WithName("version")
+    String getVersion();
 
     @NotNull
-    private final URL url;
+    @ConfigProperty(defaultValue = "localhost")
+    @WithName("url")
+    URL getUrl();
 
-    private final String user;
+    @WithName("user")
+    String getUser();
 
-    private final String password;
+    @WithName("password")
+    String getPassword();
 
-    private final String clientSecret;
+    @WithName("client-secret")
+    String getClientSecret();
 
+    @WithName("grant-type")
     @NotBlank
-    private final String grantType;
+    String getGrantType();
 
+    @WithName("ssl-verify")
     @NotNull
-    private final boolean sslVerify;
+    boolean isSslVerify();
 
-    private final URL httpProxy;
+    @WithName("http-proxy")
+    Optional<URL> getHttpProxy();
 
-    private final Duration connectTimeout;
+    @WithName("connect-timeout")
+    Duration getConnectTimeout();
 
-    private final Duration readTimeout;
+    @WithName("read-timeout")
+    Duration getReadTimeout();
 
     @Valid
-    private final KeycloakAvailabilityCheck availabilityCheck;
+    @WithName("availability-check")
+    KeycloakAvailabilityCheck getAvailabilityCheck();
 
-    public KeycloakConfigProperties(
-            String loginRealm,
-            String clientId,
-            String version, URL url,
-            String user,
-            String password,
-            String clientSecret,
-            String grantType,
-            boolean sslVerify,
-            URL httpProxy,
-            KeycloakAvailabilityCheck availabilityCheck,
-            Duration connectTimeout,
-            Duration readTimeout
-    ) {
-        this.loginRealm = loginRealm;
-        this.clientId = clientId;
-        this.version = version;
-        this.url = url;
-        this.user = user;
-        this.password = password;
-        this.clientSecret = clientSecret;
-        this.grantType = grantType;
-        this.sslVerify = sslVerify;
-        this.httpProxy = httpProxy;
-        this.availabilityCheck = availabilityCheck;
-        this.connectTimeout = connectTimeout;
-        this.readTimeout = readTimeout;
-    }
-
-    public String getLoginRealm() {
-        return loginRealm;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public URL getUrl() {
-        return url;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public boolean isSslVerify() {
-        return sslVerify;
-    }
-
-    public URL getHttpProxy() {
-        return httpProxy;
-    }
-
-    public KeycloakAvailabilityCheck getAvailabilityCheck() {
-        return availabilityCheck;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public String getGrantType() {
-        return grantType;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public Duration getConnectTimeout() {
-        return connectTimeout;
-    }
-
-    public Duration getReadTimeout() {
-        return readTimeout;
-    }
-
-    public static class KeycloakAvailabilityCheck {
+    @Value.Immutable
+    interface KeycloakAvailabilityCheck {
         @NotNull
-        private final boolean enabled;
+        @WithName("enabled")
+        boolean isEnabled();
 
         @NotNull
-        private final Duration timeout;
+        @WithName("timeout")
+        Duration getTimeout();
 
         @NotNull
-        private final Duration retryDelay;
-
-        @SuppressWarnings("unused")
-        public KeycloakAvailabilityCheck(boolean enabled, Duration timeout, Duration retryDelay) {
-            this.enabled = enabled;
-            this.timeout = timeout;
-            this.retryDelay = retryDelay;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public Duration getTimeout() {
-            return timeout;
-        }
-
-        public Duration getRetryDelay() {
-            return retryDelay;
-        }
+        @WithName("retry-delay")
+        Duration getRetryDelay();
     }
 }

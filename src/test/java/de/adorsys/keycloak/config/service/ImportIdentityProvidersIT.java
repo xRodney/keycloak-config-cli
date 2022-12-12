@@ -22,6 +22,7 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.util.VersionUtil;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.*;
@@ -36,6 +37,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
 
 @SuppressWarnings({"java:S5961", "java:S5976"})
+@QuarkusTest
 class ImportIdentityProvidersIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithIdentityProviders";
 

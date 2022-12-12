@@ -121,11 +121,11 @@ public class RoleImportService {
             List<RoleRepresentation> existingRealmRoles
     ) {
         Consumer<RoleRepresentation> loop = role -> createOrUpdateRealmRole(realmName, role, existingRealmRoles);
-        if (importConfigProperties.isParallel()) {
-            rolesToImport.parallelStream().forEach(loop);
-        } else {
-            rolesToImport.forEach(loop);
-        }
+        //if (importConfigProperties.isParallel()) {
+        //    rolesToImport.parallelStream().forEach(loop);
+        //} else {
+        rolesToImport.forEach(loop);
+        //}
     }
 
     private void createOrUpdateRealmRole(

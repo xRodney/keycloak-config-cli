@@ -24,7 +24,7 @@ import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.repository.AuthenticationFlowRepository;
 import de.adorsys.keycloak.config.repository.IdentityProviderRepository;
 import de.adorsys.keycloak.config.repository.RealmRepository;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.representations.idm.AuthenticationFlowRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -316,12 +316,12 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private boolean hasToResetFlows() {
-            return Strings.isNotBlank(browserFlow)
-                    || Strings.isNotBlank(directGrantFlow)
-                    || Strings.isNotBlank(clientAuthenticationFlow)
-                    || Strings.isNotBlank(dockerAuthenticationFlow)
-                    || Strings.isNotBlank(registrationFlow)
-                    || Strings.isNotBlank(resetCredentialsFlow)
+            return StringUtils.isNotBlank(browserFlow)
+                    || StringUtils.isNotBlank(directGrantFlow)
+                    || StringUtils.isNotBlank(clientAuthenticationFlow)
+                    || StringUtils.isNotBlank(dockerAuthenticationFlow)
+                    || StringUtils.isNotBlank(registrationFlow)
+                    || StringUtils.isNotBlank(resetCredentialsFlow)
                     || !resetFirstBrokerLoginFlow.isEmpty()
                     || !resetPostBrokerLoginFlow.isEmpty();
         }
@@ -338,7 +338,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetBrowserFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(browserFlow)) {
+            if (StringUtils.isNotBlank(browserFlow)) {
                 logger.debug(
                         "Reset browser-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), browserFlow
@@ -349,7 +349,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetDirectGrantFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(directGrantFlow)) {
+            if (StringUtils.isNotBlank(directGrantFlow)) {
                 logger.debug(
                         "Reset direct-grant-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), directGrantFlow
@@ -360,7 +360,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetClientAuthenticationFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(clientAuthenticationFlow)) {
+            if (StringUtils.isNotBlank(clientAuthenticationFlow)) {
                 logger.debug(
                         "Reset client-authentication-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), clientAuthenticationFlow
@@ -371,7 +371,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetDockerAuthenticationFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(dockerAuthenticationFlow)) {
+            if (StringUtils.isNotBlank(dockerAuthenticationFlow)) {
                 logger.debug(
                         "Reset docker-authentication-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), dockerAuthenticationFlow
@@ -382,7 +382,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetRegistrationFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(registrationFlow)) {
+            if (StringUtils.isNotBlank(registrationFlow)) {
                 logger.debug(
                         "Reset registration-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), registrationFlow
@@ -393,7 +393,7 @@ public class UsedAuthenticationFlowWorkaroundFactory {
         }
 
         private void resetCredentialsFlowIfNeeded(RealmRepresentation existingRealm) {
-            if (Strings.isNotBlank(resetCredentialsFlow)) {
+            if (StringUtils.isNotBlank(resetCredentialsFlow)) {
                 logger.debug(
                         "Reset reset-credentials-flow in realm '{}' to '{}'",
                         realmImport.getRealm(), resetCredentialsFlow

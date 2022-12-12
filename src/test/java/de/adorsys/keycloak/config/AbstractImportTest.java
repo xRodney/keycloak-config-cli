@@ -20,7 +20,7 @@
 
 package de.adorsys.keycloak.config;
 
-import de.adorsys.keycloak.config.configuration.TestConfiguration;
+import de.adorsys.keycloak.config.configuration.ImportConfigPropertiesProvider;
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
 import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
@@ -31,23 +31,13 @@ import de.adorsys.keycloak.config.test.util.KeycloakRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-@ExtendWith(SpringExtension.class)
 @ExtendWith(GithubActionsExtension.class)
-@ContextConfiguration(
-        classes = {TestConfiguration.class},
-        initializers = {ConfigDataApplicationContextInitializer.class}
-)
-@ActiveProfiles("IT")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 @Timeout(value = 30, unit = SECONDS)
@@ -66,6 +56,9 @@ abstract public class AbstractImportTest {
 
     @Autowired
     public KeycloakAuthentication keycloakAuthentication;
+
+    @Autowired
+    public ImportConfigPropertiesProvider configPropertiesProvider;
 
     public String resourcePath;
 

@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.util;
 
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.RetryingTest;
@@ -54,6 +55,6 @@ class CryptoUtilTest {
     @RetryingTest(3)
     void encryptDecryptWrong() {
         String encryptedData = CryptoUtil.encrypt("data", "key1", salt);
-        assertThrows(IllegalStateException.class, () -> CryptoUtil.decrypt(encryptedData, "key2", salt));
+        assertThrows(EncryptionOperationNotPossibleException.class, () -> CryptoUtil.decrypt(encryptedData, "key2", salt));
     }
 }

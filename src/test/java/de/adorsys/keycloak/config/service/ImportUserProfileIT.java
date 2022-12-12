@@ -20,6 +20,7 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 
+@QuarkusTest
 public class ImportUserProfileIT extends AbstractImportIT {
 
     private static final String REALM_NAME = "realmWithProfile";

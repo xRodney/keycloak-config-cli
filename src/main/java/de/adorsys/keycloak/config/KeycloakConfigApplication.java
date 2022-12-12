@@ -20,19 +20,18 @@
 
 package de.adorsys.keycloak.config;
 
-import de.adorsys.keycloak.config.properties.ImportConfigProperties;
-import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
-@SpringBootApplication(proxyBeanMethods = false)
-@EnableConfigurationProperties({KeycloakConfigProperties.class, ImportConfigProperties.class})
+//@SpringBootApplication(proxyBeanMethods = false)
+//@EnableConfigurationProperties({KeycloakConfigProperties.class, ImportConfigProperties.class})
+@QuarkusMain
 public class KeycloakConfigApplication {
     public static void main(String[] args) {
+        Quarkus.run(KeycloakConfigRunner.class, args);
         // https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-application-exit
-        System.exit(
-                SpringApplication.exit(SpringApplication.run(KeycloakConfigApplication.class, args))
-        );
+        //        System.exit(
+        //                SpringApplication.exit(SpringApplication.run(KeycloakConfigApplication.class, args))
+        //        );
     }
 }

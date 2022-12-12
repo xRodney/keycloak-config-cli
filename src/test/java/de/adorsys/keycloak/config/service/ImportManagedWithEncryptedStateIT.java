@@ -21,12 +21,16 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportManagedProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportRemoteStateProperties;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -36,10 +40,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 
-@TestPropertySource(properties = {
-        "import.remote-state.encryption-key=password",
-        "import.managed.role=full"
-})
+@QuarkusTest
 class ImportManagedWithEncryptedStateIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithManagedEncryptedSate";
 
@@ -48,6 +49,21 @@ class ImportManagedWithEncryptedStateIT extends AbstractImportIT {
 
     ImportManagedWithEncryptedStateIT() {
         this.resourcePath = "import-files/managed-encrypted-state";
+    }
+
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .managed(ImmutableImportManagedProperties.builder().from(config.getManaged())
+                        .role(ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues.FULL)
+                        .build()
+                )
+                .remoteState(ImmutableImportRemoteStateProperties.builder().from(config.getRemoteState())
+                        .encryptionKey("password")
+                        .build()
+                )
+                .build());
     }
 
     @Test

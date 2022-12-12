@@ -22,57 +22,22 @@ package de.adorsys.keycloak.config.properties;
 
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
-// From: https://tuhrig.de/testing-configurationproperties-in-spring-boot/
-@ExtendWith(SpringExtension.class)
 @ExtendWith(GithubActionsExtension.class)
-@SpringBootTest(classes = {ImportConfigPropertiesTest.TestConfiguration.class})
-@TestPropertySource(properties = {
-        "spring.main.log-startup-info=false",
-
-        "import.parallel=true",
-        "import.validate=false",
-        "import.files.locations=other",
-        "import.files.include-hidden-files=true",
-        "import.files.excludes=exclude1,exclude2",
-        "import.var-substitution.enabled=true",
-        "import.var-substitution.nested=false",
-        "import.var-substitution.undefined-is-error=false",
-        "import.var-substitution.prefix=${",
-        "import.var-substitution.suffix=}",
-        "import.cache.enabled=false",
-        "import.cache.key=custom",
-        "import.remote-state.enabled=false",
-        "import.remote-state.encryption-key=password",
-        "import.remote-state.encryption-salt=0123456789ABCDEFabcdef",
-        "import.managed.authentication-flow=no-delete",
-        "import.managed.group=no-delete",
-        "import.managed.required-action=no-delete",
-        "import.managed.client-scope=no-delete",
-        "import.managed.scope-mapping=no-delete",
-        "import.managed.client-scope-mapping=no-delete",
-        "import.managed.component=no-delete",
-        "import.managed.sub-component=no-delete",
-        "import.managed.identity-provider=no-delete",
-        "import.managed.identity-provider-mapper=no-delete",
-        "import.managed.role=no-delete",
-        "import.managed.client=no-delete",
-        "import.managed.client-authorization-resources=no-delete",
-        "import.behaviors.sync-user-federation=true",
-        "import.behaviors.remove-default-role-from-user=true",
-        "import.behaviors.skip-attributes-for-federated-user=true",
-})
+@QuarkusTest
+@TestProfile(ImportConfigPropertiesTest.TestConfiguration.class)
 class ImportConfigPropertiesTest {
 
     @Autowired
@@ -82,7 +47,7 @@ class ImportConfigPropertiesTest {
     @SuppressWarnings({"java:S2699", "java:S5961"})
     void shouldPopulateConfigurationProperties() {
         assertThat(properties.isValidate(), is(false));
-        assertThat(properties.isParallel(), is(true));
+        //assertThat(properties.isParallel(), is(true));
         assertThat(properties.getFiles().getLocations(), contains("other"));
         assertThat(properties.getFiles().getExcludes(), contains("exclude1", "exclude2"));
         assertThat(properties.getFiles().isIncludeHiddenFiles(), is(true));
@@ -114,8 +79,43 @@ class ImportConfigPropertiesTest {
         assertThat(properties.getBehaviors().isSkipAttributesForFederatedUser(), is(true));
     }
 
-    @EnableConfigurationProperties(ImportConfigProperties.class)
-    public static class TestConfiguration {
-        // nothing
+    public static class TestConfiguration implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.ofEntries(
+                    //Map.entry("import.parallel", "true"),
+                    Map.entry("import.validate", "false"),
+                    Map.entry("import.files.locations", "other"),
+                    Map.entry("import.files.include-hidden-files", "true"),
+                    Map.entry("import.files.excludes", "exclude1,exclude2"),
+                    Map.entry("import.var-substitution.enabled", "true"),
+                    Map.entry("import.var-substitution.nested", "false"),
+                    Map.entry("import.var-substitution.undefined-is-error", "false"),
+                    Map.entry("import.var-substitution.prefix", "$${"),
+                    Map.entry("import.var-substitution.suffix", "}"),
+                    Map.entry("import.cache.enabled", "false"),
+                    Map.entry("import.cache.key", "custom"),
+                    Map.entry("import.remote-state.enabled", "false"),
+                    Map.entry("import.remote-state.encryption-key", "password"),
+                    Map.entry("import.remote-state.encryption-salt", "0123456789ABCDEFabcdef"),
+                    Map.entry("import.managed.authentication-flow", "no-delete"),
+                    Map.entry("import.managed.group", "no-delete"),
+                    Map.entry("import.managed.required-action", "no-delete"),
+                    Map.entry("import.managed.client-scope", "no-delete"),
+                    Map.entry("import.managed.scope-mapping", "no-delete"),
+                    Map.entry("import.managed.client-scope-mapping", "no-delete"),
+                    Map.entry("import.managed.component", "no-delete"),
+                    Map.entry("import.managed.sub-component", "no-delete"),
+                    Map.entry("import.managed.identity-provider", "no-delete"),
+                    Map.entry("import.managed.identity-provider-mapper", "no-delete"),
+                    Map.entry("import.managed.role", "no-delete"),
+                    Map.entry("import.managed.client", "no-delete"),
+                    Map.entry("import.managed.client-authorization-resources", "no-delete"),
+                    Map.entry("import.behaviors.sync-user-federation", "true"),
+                    Map.entry("import.behaviors.remove-default-role-from-user", "true"),
+                    Map.entry("import.behaviors.skip-attributes-for-federated-user", "true")
+            );
+        }
     }
 }

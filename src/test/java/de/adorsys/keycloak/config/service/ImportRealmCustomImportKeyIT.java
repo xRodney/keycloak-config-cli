@@ -21,10 +21,13 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.properties.ImmutableImportCacheProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 
@@ -32,15 +35,22 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
 
-@TestPropertySource(properties = {
-        "keycloak.availability-check.enabled=true",
-        "import.cache.key=custom",
-})
+@QuarkusTest
 class ImportRealmCustomImportKeyIT extends AbstractImportIT {
     private static final String REALM_NAME = "realm-custom-import-key";
 
     ImportRealmCustomImportKeyIT() {
         this.resourcePath = "import-files/realm-custom-import-key";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .cache(ImmutableImportCacheProperties.builder().from(config.getCache())
+                        .key("custom")
+                        .build()
+                )
+                .build());
     }
 
     @Test

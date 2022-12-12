@@ -65,11 +65,11 @@ public class GroupImportService {
 
     public void createOrUpdateGroups(List<GroupRepresentation> groups, String realmName) {
         Consumer<GroupRepresentation> loop = group -> createOrUpdateRealmGroup(realmName, group);
-        if (importConfigProperties.isParallel()) {
-            groups.parallelStream().forEach(loop);
-        } else {
-            groups.forEach(loop);
-        }
+        //if (importConfigProperties.isParallel()) {
+        //    groups.parallelStream().forEach(loop);
+        //} else {
+        groups.forEach(loop);
+        //}
     }
 
     private void deleteGroupsMissingInImport(

@@ -21,7 +21,8 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
-import org.assertj.core.api.Assertions;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -38,6 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
+@QuarkusTest
 class ImportClientScopeMappingsIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithClientScopeMappings";
 
@@ -300,7 +302,7 @@ class ImportClientScopeMappingsIT extends AbstractImportIT {
                                                                       String scope) {
         return fetchScopeMapping(scopeMappings, s -> scope.equals(s.getClientScope()))
                 .orElseGet(() -> {
-                    Assertions.fail("The scope mapping for the {} client scope was not found", scope);
+                    Assertions.fail("The scope mapping for the %s client scope was not found".formatted(scope));
                     return null;
                 });
     }
@@ -309,7 +311,7 @@ class ImportClientScopeMappingsIT extends AbstractImportIT {
                                                                  String client) {
         return fetchScopeMapping(scopeMappings, s -> client.equals(s.getClient()))
                 .orElseGet(() -> {
-                    Assertions.fail("The scope mapping for the {} client was not found", client);
+                    Assertions.fail("The scope mapping for the %s client was not found".formatted(client));
                     return null;
                 });
     }

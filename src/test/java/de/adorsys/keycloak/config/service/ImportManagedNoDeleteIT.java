@@ -21,40 +21,52 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportManagedProperties;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.*;
 import org.keycloak.representations.idm.authorization.ResourceRepresentation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.adorsys.keycloak.config.properties.ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues.NO_DELETE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
-@TestPropertySource(properties = {
-        "import.managed.authentication-flow=no-delete",
-        "import.managed.group=no-delete",
-        "import.managed.required-action=no-delete",
-        "import.managed.client-scope=no-delete",
-        "import.managed.scope-mapping=no-delete",
-        "import.managed.client-scope-mapping=no-delete",
-        "import.managed.component=no-delete",
-        "import.managed.sub-component=no-delete",
-        "import.managed.identity-provider=no-delete",
-        "import.managed.identity-provider-mapper=no-delete",
-        "import.managed.role=no-delete",
-        "import.managed.client=no-delete",
-        "import.managed.client-authorization-resources=no-delete",
-})
 @SuppressWarnings({"java:S5961", "java:S5976"})
+@QuarkusTest
 class ImportManagedNoDeleteIT extends AbstractImportIT {
     private static final String REALM_NAME = "realmWithNoDelete";
 
     ImportManagedNoDeleteIT() {
         this.resourcePath = "import-files/managed-no-delete";
+    }
+
+    @BeforeEach
+    void setUp() {
+        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
+                .managed(ImmutableImportManagedProperties.builder().from(config.getManaged())
+                        .authenticationFlow(NO_DELETE)
+                        .group(NO_DELETE)
+                        .requiredAction(NO_DELETE)
+                        .clientScope(NO_DELETE)
+                        .scopeMapping(NO_DELETE)
+                        .clientScopeMapping(NO_DELETE)
+                        .component(NO_DELETE)
+                        .subComponent(NO_DELETE)
+                        .identityProvider(NO_DELETE)
+                        .identityProviderMapper(NO_DELETE)
+                        .role(NO_DELETE)
+                        .client(NO_DELETE)
+                        .clientAuthorizationResources(NO_DELETE)
+                        .build()
+                )
+                .build());
     }
 
     @Test

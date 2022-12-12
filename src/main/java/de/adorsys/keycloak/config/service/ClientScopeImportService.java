@@ -170,11 +170,11 @@ public class ClientScopeImportService {
             List<ClientScopeRepresentation> clientScopes
     ) {
         Consumer<ClientScopeRepresentation> loop = clientScope -> createOrUpdateClientScope(realmName, clientScope);
-        if (importConfigProperties.isParallel()) {
-            clientScopes.parallelStream().forEach(loop);
-        } else {
-            clientScopes.forEach(loop);
-        }
+        //if (importConfigProperties.isParallel()) {
+        //    clientScopes.parallelStream().forEach(loop);
+        //} else {
+        clientScopes.forEach(loop);
+        //}
     }
 
     private void deleteClientScopesMissingInImport(

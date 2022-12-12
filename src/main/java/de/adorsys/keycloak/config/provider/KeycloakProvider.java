@@ -32,14 +32,16 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Duration;
+import java.util.function.UnaryOperator;
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
@@ -49,26 +51,29 @@ import javax.ws.rs.core.Response;
  * This class exists because we need to create a single keycloak instance or to close the keycloak before using a new one
  * to avoid a deadlock.
  */
-@Component
+@RequestScoped
 public class KeycloakProvider implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(KeycloakProvider.class);
 
-    private final KeycloakConfigProperties properties;
-    private final ResteasyClient resteasyClient;
+    private KeycloakConfigProperties properties;
+    private ResteasyClient resteasyClient;
 
     private Keycloak keycloak;
 
     private String version;
 
-    @Autowired
-    private KeycloakProvider(KeycloakConfigProperties properties) {
+    @Inject
+    public KeycloakProvider(KeycloakConfigProperties properties) {
         this.properties = properties;
-        this.resteasyClient = ResteasyUtil.getClient(
-                !this.properties.isSslVerify(),
-                this.properties.getHttpProxy(),
-                this.properties.getConnectTimeout(),
-                this.properties.getReadTimeout()
-        );
+    }
+
+    public void setProperties(KeycloakConfigProperties properties) {
+        close();
+        this.properties = properties;
+    }
+
+    public void editProperties(UnaryOperator<KeycloakConfigProperties> editor) {
+        setProperties(editor.apply(properties));
     }
 
     public Keycloak getInstance() {
@@ -147,6 +152,13 @@ public class KeycloakProvider implements AutoCloseable {
     }
 
     private Keycloak getKeycloakInstance(String serverUrl) {
+        this.resteasyClient = ResteasyUtil.getClient(
+                !this.properties.isSslVerify(),
+                this.properties.getHttpProxy().orElse(null),
+                this.properties.getConnectTimeout(),
+                this.properties.getReadTimeout()
+        );
+
         return KeycloakBuilder.builder()
                 .serverUrl(serverUrl)
                 .realm(properties.getLoginRealm())
@@ -175,6 +187,7 @@ public class KeycloakProvider implements AutoCloseable {
     }
 
     @Override
+    @PreDestroy
     public void close() {
         if (!isClosed()) {
             logout();

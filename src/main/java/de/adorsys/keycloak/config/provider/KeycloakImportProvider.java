@@ -22,6 +22,7 @@ package de.adorsys.keycloak.config.provider;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.adorsys.keycloak.config.configuration.PathScanner;
 import de.adorsys.keycloak.config.exception.InvalidImportException;
 import de.adorsys.keycloak.config.model.ImportResource;
 import de.adorsys.keycloak.config.model.KeycloakImport;
@@ -33,29 +34,27 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
 import org.apache.commons.text.lookup.StringLookupFactory;
+import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import org.springframework.util.PathMatcher;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
-import java.net.PasswordAuthentication;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.enterprise.context.control.ActivateRequestContext;
 
 @Component
 public class KeycloakImportProvider {
-    private final PathMatchingResourcePatternResolver patternResolver;
+    private final Config config;
+    private final PathScanner pathScanner;
     private final ImportConfigProperties importConfigProperties;
 
     private StringSubstitutor interpolator = null;
@@ -67,21 +66,19 @@ public class KeycloakImportProvider {
 
     @Autowired
     public KeycloakImportProvider(
-            Environment environment,
-            PathMatchingResourcePatternResolver patternResolver,
+            Config config,
+            PathScanner pathScanner,
             ImportConfigProperties importConfigProperties
     ) {
-        this.patternResolver = patternResolver;
+        this.config = config;
+        this.pathScanner = pathScanner;
         this.importConfigProperties = importConfigProperties;
-
-        if (importConfigProperties.getVarSubstitution().isEnabled()) {
-            setupVariableSubstitution(environment);
-        }
     }
 
-    private void setupVariableSubstitution(Environment environment) {
+    private void setupVariableSubstitution(Config config) {
         StringLookup variableResolver = StringLookupFactory.INSTANCE.interpolatorStringLookup(
-                StringLookupFactory.INSTANCE.functionStringLookup(environment::getProperty)
+                StringLookupFactory.INSTANCE.functionStringLookup(
+                        propertyName -> config.getOptionalValue(propertyName, String.class).orElse(null))
         );
 
         this.interpolator = StringSubstitutor.createInterpolator()
@@ -96,28 +93,31 @@ public class KeycloakImportProvider {
         return readFromLocations(Arrays.asList(locations));
     }
 
+    @ActivateRequestContext
     public KeycloakImport readFromLocations(Collection<String> locations) {
+        if (importConfigProperties.getVarSubstitution().isEnabled()) {
+            setupVariableSubstitution(config);
+        }
+
         Map<String, Map<String, List<RealmImport>>> realmImports = new LinkedHashMap<>();
 
         for (String location : locations) {
             logger.debug("Loading file location '{}'", location);
             String resourceLocation = prepareResourceLocation(location);
 
-            Resource[] resources;
+            List<Resource> resources;
             try {
-                resources = this.patternResolver.getResources(resourceLocation);
-            } catch (IOException e) {
-                throw new InvalidImportException("Unable to proceed location '" + location + "': " + e.getMessage(), e);
+                resources = this.pathScanner.getResources(resourceLocation);
+            } catch (IOException | URISyntaxException e) {
+                throw new InvalidImportException("Error loading resources", e);
             }
 
-            resources = Arrays.stream(resources).filter(this::filterExcludedResources).toArray(Resource[]::new);
-
-            if (resources.length == 0) {
+            if (resources.isEmpty()) {
                 throw new InvalidImportException("No files matching '" + location + "'!");
             }
 
             // Import Pipe
-            Map<String, List<RealmImport>> realmImport = Arrays.stream(resources)
+            Map<String, List<RealmImport>> realmImport = resources.stream()
                     .map(this::readResource)
                     .filter(this::filterEmptyResources)
                     .sorted(Map.Entry.comparingByKey())
@@ -132,48 +132,10 @@ public class KeycloakImportProvider {
         return new KeycloakImport(realmImports);
     }
 
-    private boolean filterExcludedResources(Resource resource) {
-        if (!resource.isFile()) {
-            return true;
-        }
-
-        File file;
-
-        try {
-            file = resource.getFile();
-        } catch (IOException ignored) {
-            return true;
-        }
-
-        if (file.isDirectory()) {
-            return false;
-        }
-
-        if (!this.importConfigProperties.getFiles().isIncludeHiddenFiles() && (file.isHidden() || FileUtils.hasHiddenAncestorDirectory(file))) {
-            return false;
-        }
-
-        PathMatcher pathMatcher = patternResolver.getPathMatcher();
-        return importConfigProperties.getFiles().getExcludes()
-                .stream()
-                .map(pattern -> pattern.startsWith("**") ? "/" + pattern : pattern)
-                .map(pattern -> !pattern.startsWith("/**") ? "/**" + pattern : pattern)
-                .map(pattern -> !pattern.startsWith("/") ? "/" + pattern : pattern)
-                .noneMatch(pattern -> {
-                    boolean match = pathMatcher.match(pattern, file.getPath());
-                    if (match) {
-                        logger.debug("Excluding resource file '{}' (match {})", file.getPath(), pattern);
-                        return true;
-                    }
-                    return false;
-                });
-    }
-
     private ImportResource readResource(Resource resource) {
         logger.debug("Loading file '{}'", resource.getFilename());
 
         try {
-            resource = setupAuthentication(resource);
             try (InputStream inputStream = resource.getInputStream()) {
                 return new ImportResource(resource.getURI().toString(), new String(inputStream.readAllBytes(), StandardCharsets.UTF_8));
             }
@@ -199,7 +161,7 @@ public class KeycloakImportProvider {
     private Pair<String, List<RealmImport>> readRealmImportFromImportResource(ImportResource resource) {
         String location = resource.getFilename();
         String content = resource.getValue();
-        String contentChecksum = DigestUtils.sha256Hex(content);
+        String contentChecksum = DigestUtils.sha256Hex(content.replace("\r\n", "\n"));
 
         if (logger.isTraceEnabled()) {
             logger.trace(content);
@@ -239,32 +201,5 @@ public class KeycloakImportProvider {
             importLocation = "file:" + importLocation;
         }
         return importLocation;
-    }
-
-    private Resource setupAuthentication(Resource resource) throws IOException {
-        String userInfo;
-
-        try {
-            userInfo = resource.getURL().getUserInfo();
-        } catch (IOException e) {
-            return resource;
-        }
-
-        if (userInfo == null) return resource;
-
-        String[] userInfoSplit = userInfo.split(":");
-
-        if (userInfoSplit.length != 2) return resource;
-
-        Authenticator.setDefault(new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(userInfoSplit[0], userInfoSplit[1].toCharArray());
-            }
-        });
-
-        // Mask AuthInfo
-        String location = resource.getURI().toString().replace(userInfo + "@", "***@");
-        return new UrlResource(location);
     }
 }

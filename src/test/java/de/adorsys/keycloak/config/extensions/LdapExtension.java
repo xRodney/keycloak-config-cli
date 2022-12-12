@@ -29,9 +29,11 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
+
+import static de.adorsys.keycloak.config.AbstractImportIT.LDAP_HOST;
+import static de.adorsys.keycloak.config.AbstractImportIT.LDAP_PORT;
 
 // https://gist.github.com/peterkeller/6d9993b440c4f0bf0cffc71b595df1bb
 public class LdapExtension implements BeforeAllCallback, AfterAllCallback {
@@ -52,11 +54,11 @@ public class LdapExtension implements BeforeAllCallback, AfterAllCallback {
 
     @Override
     public void beforeAll(final ExtensionContext context) throws Exception {
-        try (final InputStream inputStream = new ClassPathResource(ldif).getInputStream()) {
+        try (final InputStream inputStream = LdapExtension.class.getResourceAsStream(ldif)) {
             LOG.info("LDAP server starting...");
             final InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig(baseDN);
             config.setSchema(null); // must be set or initialization fails with LDAPException
-            config.setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("LDAP", 0));
+            config.setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("LDAP", LDAP_PORT));
             if (bindDN != null) {
                 config.addAdditionalBindCredentials(bindDN, password);
             }
@@ -69,11 +71,10 @@ public class LdapExtension implements BeforeAllCallback, AfterAllCallback {
             server.startListening();
             LOG.info("LDAP server started. Listen on port " + server.getListenPort());
             if (System.getProperty("JUNIT_LDAP_HOST") == null) {
-                //Default: Docker internal host
-                System.setProperty("JUNIT_LDAP_HOST", "host.docker.internal");
+                System.setProperty("JUNIT_LDAP_HOST", LDAP_HOST);
             }
             System.setProperty("JUNIT_LDAP_PORT", String.valueOf(server.getListenPort()));
-            LOG.info("Using LDAP properties ${}:${}", System.getProperty("JUNIT_LDAP_HOST"), System.getProperty("JUNIT_LDAP_PORT"));
+            LOG.info("Using LDAP properties {}:{}", System.getProperty("JUNIT_LDAP_HOST"), System.getProperty("JUNIT_LDAP_PORT"));
         }
     }
 
