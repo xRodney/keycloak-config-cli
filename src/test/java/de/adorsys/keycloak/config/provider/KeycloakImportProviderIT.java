@@ -41,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SuppressWarnings({"java:S5976"})
 @QuarkusTest
 class KeycloakImportProviderIT extends AbstractImportTest {
+    private static String BASE = KeycloakImportProviderIT.class.getClassLoader().getResource("").toString();
+
     @BeforeEach
     void setUp() {
         configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
@@ -53,7 +55,7 @@ class KeycloakImportProviderIT extends AbstractImportTest {
 
     @Test
     void shouldReadLocalFile() {
-        String location = "classpath:import-files/import/single/0_create_realm.json";
+        String location = BASE + "/import-files/import/single/0_create_realm.json";
         KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(location);
 
         assertThat(keycloakImport.getRealmImports(), hasKey(is(location)));
@@ -77,7 +79,7 @@ class KeycloakImportProviderIT extends AbstractImportTest {
 
     @Test
     void shouldReadLocalFilesFromDirectorySorted() {
-        String location = "classpath:import-files/import/sorted";
+        String location = BASE + "/import-files/import/sorted";
         KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(location);
         assertThat(keycloakImport.getRealmImports(), hasKey(is(location)));
         assertThat(keycloakImport.getRealmImports().get(location).keySet(), contains(
@@ -104,8 +106,8 @@ class KeycloakImportProviderIT extends AbstractImportTest {
 
     @Test
     void shouldReadLocalFilesFromManyDirectories() {
-        String location1 = "classpath:import-files/import/wildcard/sub";
-        String location2 = "classpath:import-files/import/wildcard/another";
+        String location1 = BASE + "/import-files/import/wildcard/sub";
+        String location2 = BASE + "/import-files/import/wildcard/another";
         KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(location1, location2);
         assertThat(keycloakImport.getRealmImports().keySet(), contains(is(location1), is(location2)));
         assertThat(keycloakImport.getRealmImports().get(location1), allOf(
@@ -146,7 +148,7 @@ class KeycloakImportProviderIT extends AbstractImportTest {
                 .build()
         );
 
-        String location = "classpath:import-files/import/sorted";
+        String location = BASE + "/import-files/import/sorted";
         KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(location);
 
         assertThat(keycloakImport.getRealmImports(), hasKey(is(location)));
@@ -174,7 +176,7 @@ class KeycloakImportProviderIT extends AbstractImportTest {
                 .build()
         );
 
-        String location = "classpath:import-files/import/sorted";
+        String location = BASE + "/import-files/import/sorted";
         KeycloakImport keycloakImport = keycloakImportProvider.readFromLocations(location);
 
         assertThat(keycloakImport.getRealmImports(), hasKey(is(location)));

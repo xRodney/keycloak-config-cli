@@ -103,11 +103,10 @@ public class KeycloakImportProvider {
 
         for (String location : locations) {
             logger.debug("Loading file location '{}'", location);
-            String resourceLocation = prepareResourceLocation(location);
 
             List<Resource> resources;
             try {
-                resources = this.pathScanner.getResources(resourceLocation);
+                resources = this.pathScanner.getResources(location);
             } catch (IOException | URISyntaxException e) {
                 throw new InvalidImportException("Error loading resources", e);
             }
@@ -189,17 +188,5 @@ public class KeycloakImportProvider {
         }
 
         return realmImports;
-    }
-
-    private String prepareResourceLocation(String location) {
-        String importLocation = location;
-
-        importLocation = importLocation.replaceFirst("^zip:", "jar:");
-
-        // backward compatibility to correct a possible missing prefix "file:" in path
-        if (!importLocation.contains(":")) {
-            importLocation = "file:" + importLocation;
-        }
-        return importLocation;
     }
 }

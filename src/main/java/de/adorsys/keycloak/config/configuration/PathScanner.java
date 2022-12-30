@@ -28,9 +28,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
@@ -39,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -49,10 +46,7 @@ import javax.inject.Singleton;
 
 @Singleton
 public class PathScanner {
-    public static final String CLASSPATH = "classpath:";
     public static final String FILE = "file:";
-
-    private static ClassLoader classLoader = PathScanner.class.getClassLoader();
 
     private static WildcardFileFilter DOT_HIDDEN = new WildcardFileFilter(".*");
 
@@ -68,15 +62,7 @@ public class PathScanner {
         PathFilter fileFilter = getFileFilter();
         PathFilter dirFilter = getDirectoryFilter();
 
-        var classpath = getClassPathResources(location, fileFilter, dirFilter);
-        if (!classpath.isEmpty()) {
-            return classpath;
-        }
-        var files = getFileResources(location, fileFilter, dirFilter);
-        if (!files.isEmpty()) {
-            return files;
-        }
-        return List.of();
+        return getFileResources(location, fileFilter, dirFilter);
     }
 
     private PathFilter getFileFilter() {
@@ -103,10 +89,6 @@ public class PathScanner {
     }
 
     private List<Resource> getFileResources(String location, PathFilter fileFilter, PathFilter dirFilter) throws IOException {
-        if (!location.startsWith(FILE)) {
-            return List.of();
-        }
-
         var file = new File(StringUtils.stripStart(location, FILE));
         if (file.isDirectory()) {
             final AccumulatorPathVisitor visitor = AccumulatorPathVisitor.withLongCounters(fileFilter, dirFilter);
@@ -122,25 +104,6 @@ public class PathScanner {
             return List.of(new FileResource(file));
         }
         return List.of();
-    }
-
-    @NotNull
-    private List<Resource> getClassPathResources(String location, PathFilter fileFilter, PathFilter dirFilter) throws URISyntaxException, IOException {
-        if (!location.startsWith(CLASSPATH)) {
-            return List.of();
-        }
-        var resource = classLoader.getResource(StringUtils.stripStart(location, CLASSPATH));
-        if (resource == null) {
-            return List.of();
-        }
-
-        // recursively search dirs on expanded classpath - used in tests
-        var files = getFileResources(resource.toString(), fileFilter, dirFilter);
-        if (!files.isEmpty()) {
-            return files;
-        }
-
-        return List.of(new ClassPathResource(resource));
     }
 
     private static class FileResource extends AbstractResource {
@@ -174,27 +137,6 @@ public class PathScanner {
         @Override
         public URI getURI() {
             return file.toURI();
-        }
-    }
-
-
-    private static class ClassPathResource extends InputStreamResource {
-
-        private final URI uri;
-
-        public ClassPathResource(URL resource) throws IOException, URISyntaxException {
-            super(resource.openStream());
-            this.uri = resource.toURI();
-        }
-
-        @Override
-        public URI getURI() throws IOException {
-            return uri;
-        }
-
-        @Override
-        public String getDescription() {
-            return uri.toString();
         }
     }
 }

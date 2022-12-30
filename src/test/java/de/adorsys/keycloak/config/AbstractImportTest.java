@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -79,7 +80,11 @@ abstract public class AbstractImportTest {
     }
 
     public List<RealmImport> getImport(String fileName) throws IOException {
-        String location = "classpath:" + this.resourcePath + '/' + fileName;
+        URL url = getClass().getClassLoader().getResource(this.resourcePath + '/' + fileName);
+        if (url == null) {
+            throw new IllegalArgumentException(fileName);
+        }
+        String location = url.toString();
         return keycloakImportProvider
                 .readFromLocations(location)
                 .getRealmImports()
