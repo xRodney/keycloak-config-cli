@@ -45,7 +45,6 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -104,12 +103,7 @@ public class KeycloakImportProvider {
         for (String location : locations) {
             logger.debug("Loading file location '{}'", location);
 
-            List<Resource> resources;
-            try {
-                resources = this.pathScanner.getResources(location);
-            } catch (IOException | URISyntaxException e) {
-                throw new InvalidImportException("Error loading resources", e);
-            }
+            List<Resource> resources = this.pathScanner.getResources(location);
 
             if (resources.isEmpty()) {
                 throw new InvalidImportException("No files matching '" + location + "'!");

@@ -53,20 +53,10 @@ class CommandLineImportIT extends AbstractImportIT {
 
     @Test
     void testImportDirectory() {
-        var exitCode = runner.run(
-                "src/test/resources/import-files/cli/dir"
-        );
-        assertThat(exitCode, is(0));
+        InvalidImportException thrown = assertThrows(InvalidImportException.class, () ->
+                runner.run("src/test/resources/import-files/cli/dir"));
 
-        RealmRepresentation file1Realm = keycloakProvider.getInstance().realm("file1").toRepresentation();
-
-        assertThat(file1Realm.getRealm(), is("file1"));
-        assertThat(file1Realm.isEnabled(), is(true));
-
-        RealmRepresentation file2Realm = keycloakProvider.getInstance().realm("file2").toRepresentation();
-
-        assertThat(file2Realm.getRealm(), is("file2"));
-        assertThat(file2Realm.isEnabled(), is(true));
+        assertThat(thrown.getMessage(), is("Unable to load src/test/resources/import-files/cli/dir. It is a directory"));
     }
 
     @Test

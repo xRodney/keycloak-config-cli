@@ -24,8 +24,6 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithName;
 import org.immutables.value.Value;
 
-import java.util.List;
-
 @ConfigMapping(prefix = "import")
 @SuppressWarnings({"java:S107"})
 @Value.Immutable
@@ -36,13 +34,6 @@ public interface ImportConfigProperties {
 
     @WithName("validate")
     boolean isValidate();
-
-    // Parallel import is unsupported in Operator
-    // @WithName("parallel")
-    // boolean isParallel();
-
-    @WithName("files")
-    ImportFilesProperties getFiles();
 
     @WithName("var-substitution")
     ImportVarSubstitutionProperties getVarSubstitution();
@@ -104,22 +95,6 @@ public interface ImportConfigProperties {
         public enum ImportManagedPropertiesValues {
             FULL, NO_DELETE
         }
-    }
-
-    @SuppressWarnings("unused")
-    @Value.Immutable
-    interface ImportFilesProperties {
-        @WithName("locations")
-        List<String> getLocations();
-
-        @WithName("excludes")
-        List<String> getExcludes();
-
-        @WithName("include-hidden-files")
-        boolean isIncludeHiddenFiles();
-
-        @WithName("pattern")
-        List<String> getPattern();
     }
 
     @SuppressWarnings("unused")

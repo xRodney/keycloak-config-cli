@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(GithubActionsExtension.class)
@@ -48,9 +47,9 @@ class ImportConfigPropertiesTest {
     void shouldPopulateConfigurationProperties() {
         assertThat(properties.isValidate(), is(false));
         //assertThat(properties.isParallel(), is(true));
-        assertThat(properties.getFiles().getLocations(), contains("other"));
-        assertThat(properties.getFiles().getExcludes(), contains("exclude1", "exclude2"));
-        assertThat(properties.getFiles().isIncludeHiddenFiles(), is(true));
+//        assertThat(properties.getFiles().getLocations(), contains("other"));
+//        assertThat(properties.getFiles().getExcludes(), contains("exclude1", "exclude2"));
+//        assertThat(properties.getFiles().isIncludeHiddenFiles(), is(true));
         assertThat(properties.getVarSubstitution().isEnabled(), is(true));
         assertThat(properties.getVarSubstitution().isNested(), is(false));
         assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));
@@ -86,9 +85,9 @@ class ImportConfigPropertiesTest {
             return Map.ofEntries(
                     //Map.entry("import.parallel", "true"),
                     Map.entry("import.validate", "false"),
-                    Map.entry("import.files.locations", "other"),
-                    Map.entry("import.files.include-hidden-files", "true"),
-                    Map.entry("import.files.excludes", "exclude1,exclude2"),
+//                    Map.entry("import.files.locations", "other"),
+//                    Map.entry("import.files.include-hidden-files", "true"),
+//                    Map.entry("import.files.excludes", "exclude1,exclude2"),
                     Map.entry("import.var-substitution.enabled", "true"),
                     Map.entry("import.var-substitution.nested", "false"),
                     Map.entry("import.var-substitution.undefined-is-error", "false"),

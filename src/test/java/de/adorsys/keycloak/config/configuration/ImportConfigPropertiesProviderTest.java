@@ -1,16 +1,14 @@
 package de.adorsys.keycloak.config.configuration;
 
+import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
-import de.adorsys.keycloak.config.properties.ImmutableImportFilesProperties;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import javax.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 class ImportConfigPropertiesProviderTest {
@@ -22,24 +20,22 @@ class ImportConfigPropertiesProviderTest {
 
     @Test
     void propertiesProxyWorksCorrectly() {
-        var defaultLocations = properties.getFiles().getLocations();
-        assertNotNull(defaultLocations);
-        assertEquals(defaultLocations, provider.getConfig().getFiles().getLocations());
+        var defaultSyncUserFederation = properties.getBehaviors().isSyncUserFederation();
+        assertEquals(defaultSyncUserFederation, provider.getConfig().getBehaviors().isSyncUserFederation());
 
-        var editedLocations = List.of("location1a", "location1b");
+        var editedSyncUserFederation = !defaultSyncUserFederation;
         provider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
-                .files(ImmutableImportFilesProperties.builder().from(properties.getFiles())
-                        .locations(editedLocations)
-                        .build()
-                )
+                .behaviors(ImmutableImportBehaviorsProperties.builder().from(properties.getBehaviors())
+                        .isSyncUserFederation(editedSyncUserFederation)
+                        .build())
                 .build()
         );
 
-        assertEquals(editedLocations, provider.getConfig().getFiles().getLocations());
-        assertEquals(editedLocations, properties.getFiles().getLocations());
+        assertEquals(editedSyncUserFederation, provider.getConfig().getBehaviors().isSyncUserFederation());
+        assertEquals(editedSyncUserFederation, properties.getBehaviors().isSyncUserFederation());
 
         provider.resetConfig();
-        assertEquals(defaultLocations, provider.getConfig().getFiles().getLocations());
-        assertEquals(defaultLocations, properties.getFiles().getLocations());
+        assertEquals(defaultSyncUserFederation, provider.getConfig().getBehaviors().isSyncUserFederation());
+        assertEquals(defaultSyncUserFederation, properties.getBehaviors().isSyncUserFederation());
     }
 }
