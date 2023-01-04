@@ -56,6 +56,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>2.14.0.CR1</quarkus.platform.version>
+        <fabric8-client.version>6.3.0</fabric8-client.version>
         <skipITs>true</skipITs>
 
         <keycloak.version>20.0.1</keycloak.version>
@@ -159,11 +160,25 @@
             </dependency>
 
             <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client-api</artifactId>
+                <version>${fabric8-client.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.quarkiverse.operatorsdk</groupId>
+                <artifactId>quarkus-operator-sdk</artifactId>
+                <version>5.0.0.Beta1</version>
             </dependency>
 
             <dependency>
@@ -201,6 +216,14 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-spring-boot-properties</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>crd-generator-apt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.operatorsdk</groupId>
+            <artifactId>quarkus-operator-sdk</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jasypt</groupId>

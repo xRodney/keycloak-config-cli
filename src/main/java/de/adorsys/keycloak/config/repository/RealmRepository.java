@@ -75,8 +75,12 @@ public class RealmRepository {
     }
 
     public void update(RealmRepresentation realm) {
+        update(realm.getRealm(), realm);
+    }
+
+    public void update(String existingRealmName, RealmRepresentation realm) {
         try {
-            getResource(realm.getRealm()).update(realm);
+            getResource(existingRealmName).update(realm);
         } catch (WebApplicationException error) {
             String errorMessage = ResponseUtil.getErrorMessage(error);
             throw new KeycloakRepositoryException(
