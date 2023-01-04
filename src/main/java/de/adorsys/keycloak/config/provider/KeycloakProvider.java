@@ -23,8 +23,6 @@ package de.adorsys.keycloak.config.provider;
 import de.adorsys.keycloak.config.exception.KeycloakProviderException;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.util.ResteasyUtil;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.client.jaxrs.internal.BasicAuthentication;
@@ -35,9 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.time.Duration;
 import java.util.function.UnaryOperator;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.RequestScoped;
@@ -100,7 +95,7 @@ public class KeycloakProvider implements AutoCloseable {
 
     public <T> T getCustomApiProxy(Class<T> proxyClass) {
         try {
-            URI uri = properties.getUrl().toURI();
+            URI uri = new URI(properties.getUrl());
             return getInstance().proxy(proxyClass, uri);
         } catch (URISyntaxException e) {
             throw new KeycloakProviderException(e);
@@ -109,43 +104,15 @@ public class KeycloakProvider implements AutoCloseable {
 
     private Keycloak createKeycloak() {
         Keycloak result;
-        if (properties.getAvailabilityCheck().isEnabled()) {
-            result = getKeycloakWithRetry();
-        } else {
-            result = getKeycloak();
-        }
+        result = getKeycloak();
 
         return result;
     }
 
-    private Keycloak getKeycloakWithRetry() {
-        Duration timeout = properties.getAvailabilityCheck().getTimeout();
-        Duration retryDelay = properties.getAvailabilityCheck().getRetryDelay();
-
-        RetryPolicy<Keycloak> retryPolicy = new RetryPolicy<Keycloak>()
-                .withDelay(retryDelay)
-                .withMaxDuration(timeout)
-                .withMaxRetries(-1)
-                .onRetry(e -> logger.debug("Attempt failure #{}: {}", e.getAttemptCount(), e.getLastFailure().getMessage()));
-
-        logger.info("Wait {} seconds until {} is available ...", timeout.getSeconds(), properties.getUrl());
-
-        try {
-            return Failsafe.with(retryPolicy).get(() -> {
-                Keycloak obj = getKeycloak();
-                obj.serverInfo().getInfo();
-                return obj;
-            });
-        } catch (Exception e) {
-            String message = MessageFormat.format("Could not connect to keycloak in {0} seconds: {1}", timeout.getSeconds(), e.getMessage());
-            throw new KeycloakProviderException(message);
-        }
-    }
-
     private Keycloak getKeycloak() {
-        URL serverUrl = properties.getUrl();
+        String serverUrl = properties.getUrl();
 
-        Keycloak keycloakInstance = getKeycloakInstance(serverUrl.toString());
+        Keycloak keycloakInstance = getKeycloakInstance(serverUrl);
         keycloakInstance.tokenManager().getAccessToken();
 
         return keycloakInstance;
@@ -154,7 +121,7 @@ public class KeycloakProvider implements AutoCloseable {
     private Keycloak getKeycloakInstance(String serverUrl) {
         this.resteasyClient = ResteasyUtil.getClient(
                 !this.properties.isSslVerify(),
-                this.properties.getHttpProxy().orElse(null),
+                this.properties.getHttpProxy(),
                 this.properties.getConnectTimeout(),
                 this.properties.getReadTimeout()
         );

@@ -25,10 +25,8 @@ import io.smallrye.config.WithName;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.immutables.value.Value;
 
-import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -52,7 +50,7 @@ public interface KeycloakConfigProperties {
     @NotNull
     @ConfigProperty(defaultValue = "localhost")
     @WithName("url")
-    URL getUrl();
+    String getUrl();
 
     @WithName("user")
     String getUser();
@@ -72,30 +70,11 @@ public interface KeycloakConfigProperties {
     boolean isSslVerify();
 
     @WithName("http-proxy")
-    Optional<URL> getHttpProxy();
+    Optional<String> getHttpProxy();
 
     @WithName("connect-timeout")
     Duration getConnectTimeout();
 
     @WithName("read-timeout")
     Duration getReadTimeout();
-
-    @Valid
-    @WithName("availability-check")
-    KeycloakAvailabilityCheck getAvailabilityCheck();
-
-    @Value.Immutable
-    interface KeycloakAvailabilityCheck {
-        @NotNull
-        @WithName("enabled")
-        boolean isEnabled();
-
-        @NotNull
-        @WithName("timeout")
-        Duration getTimeout();
-
-        @NotNull
-        @WithName("retry-delay")
-        Duration getRetryDelay();
-    }
 }

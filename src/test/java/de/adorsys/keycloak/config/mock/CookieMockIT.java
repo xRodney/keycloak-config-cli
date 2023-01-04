@@ -22,7 +22,10 @@ package de.adorsys.keycloak.config.mock;
 
 import de.adorsys.keycloak.config.AbstractImportTest;
 import de.adorsys.keycloak.config.model.RealmImport;
-import de.adorsys.keycloak.config.properties.*;
+import de.adorsys.keycloak.config.properties.ImmutableImportCacheProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
+import de.adorsys.keycloak.config.properties.ImmutableImportRemoteStateProperties;
+import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
 import de.adorsys.keycloak.config.test.util.KeycloakMock;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +35,6 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Cookie;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,7 +55,7 @@ class CookieMockIT extends AbstractImportTest {
         mockServerClient = ClientAndServer.startClientAndServer();
 
         keycloakProvider.setProperties(ImmutableKeycloakConfigProperties.builder()
-                .url(new URL("http://localhost:" + mockServerClient.getPort()))
+                .url("http://localhost:" + mockServerClient.getPort())
                 .isSslVerify(true)
                 .loginRealm("master")
                 .grantType("password")
@@ -62,12 +64,6 @@ class CookieMockIT extends AbstractImportTest {
                 .clientSecret("somesecret")
                 .clientId("someclientid")
                 .version("@keycloak.version@")
-                .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
-                        .isEnabled(false)
-                        .timeout(Duration.ofSeconds(10))
-                        .retryDelay(Duration.ofSeconds(20))
-                        .build()
-                )
                 .connectTimeout(Duration.ofSeconds(10))
                 .readTimeout(Duration.ofSeconds(10))
                 .build()

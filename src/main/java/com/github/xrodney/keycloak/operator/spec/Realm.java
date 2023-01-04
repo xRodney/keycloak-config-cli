@@ -18,20 +18,14 @@
  * ---license-end
  */
 
-package de.adorsys.keycloak.config;
+package com.github.xrodney.keycloak.operator.spec;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
+import io.fabric8.kubernetes.api.model.Namespaced;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Version;
 
-//@SpringBootApplication(proxyBeanMethods = false)
-//@EnableConfigurationProperties({KeycloakConfigProperties.class, ImportConfigProperties.class})
-@QuarkusMain
-public class KeycloakConfigApplication {
-    public static void main(String[] args) {
-        Quarkus.run(KeycloakConfigRunner.class, args);
-        // https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-application-exit
-        //        System.exit(
-        //                SpringApplication.exit(SpringApplication.run(KeycloakConfigApplication.class, args))
-        //        );
-    }
+@Group(SchemaConstants.GROUP)
+@Version(SchemaConstants.VERSION1)
+public class Realm extends CustomResource<RealmSpec, DefaultStatus> implements Namespaced {
 }

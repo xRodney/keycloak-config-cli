@@ -20,8 +20,6 @@
 
 package de.adorsys.keycloak.config.provider;
 
-import de.adorsys.keycloak.config.exception.KeycloakProviderException;
-import de.adorsys.keycloak.config.properties.ImmutableKeycloakAvailabilityCheck;
 import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.resource.ManagementPermissions;
@@ -31,13 +29,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junitpioneer.jupiter.SetSystemProperty;
 import org.mockserver.integration.ClientAndServer;
 
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Duration;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -55,7 +51,7 @@ class KeycloakProviderIT {
     static void beforeAll() throws MalformedURLException {
         mockServerClient = ClientAndServer.startClientAndServer();
         defaultProperties = ImmutableKeycloakConfigProperties.builder()
-                .url(new URL("http://localhost:" + mockServerClient.getPort()))
+                .url("http://localhost:" + mockServerClient.getPort())
                 .isSslVerify(false)
                 .loginRealm("master")
                 .grantType("password")
@@ -64,12 +60,6 @@ class KeycloakProviderIT {
                 .clientSecret("somesecret")
                 .clientId("someclientid")
                 .version("@keycloak.version@")
-                .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
-                        .isEnabled(false)
-                        .timeout(Duration.ofSeconds(10))
-                        .retryDelay(Duration.ofSeconds(20))
-                        .build()
-                )
                 .connectTimeout(Duration.ofSeconds(10))
                 .readTimeout(Duration.ofSeconds(10))
                 .build();
@@ -97,7 +87,7 @@ class KeycloakProviderIT {
         @Timeout(value = 2L)
         void run() throws MalformedURLException {
             var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
-                    .url(new URL("https://10.255.255.1"))
+                    .url("https://10.255.255.1")
                     .connectTimeout(Duration.ofMillis(10))
                     .build());
 
@@ -107,26 +97,6 @@ class KeycloakProviderIT {
             assertNotNull(thrown.getCause());
             assertTrue(thrown.getCause() instanceof ConnectTimeoutException);
             assertThat(thrown.getCause().getMessage(), matchesPattern(".*[Cc]onnect timed out.*"));
-        }
-    }
-
-    @Nested
-    class RaiseTimeout  {
-        @Test
-        void run() throws MalformedURLException {
-            var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
-                    .url(new URL("https://localhost:1"))
-                    .availabilityCheck(ImmutableKeycloakAvailabilityCheck.builder()
-                            .isEnabled(true)
-                            .timeout(Duration.ofMillis(300))
-                            .retryDelay(Duration.ofMillis(100))
-                            .build()
-                    )
-                    .build());
-
-            KeycloakProviderException thrown = assertThrows(KeycloakProviderException.class, keycloakProvider::getInstance);
-
-            assertThat(thrown.getMessage(), matchesPattern("Could not connect to keycloak in 0 seconds: .*$"));
         }
     }
 
@@ -141,17 +111,23 @@ class KeycloakProviderIT {
     }
 
     @Nested
-    @SetSystemProperty(key = "http.proxyHost", value = "localhost")
-    @SetSystemProperty(key = "http.proxyPort", value = "2")
     class HttpProxySystemProperties  {
 
         @Test
         void testHttpProxy() {
-            var keycloakProvider = new KeycloakProvider(defaultProperties);
+            try {
+                System.setProperty("http.proxyHost", "localhost");
+                System.setProperty("http.proxyPort", "2");
 
-            ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getKeycloakVersion);
+                var keycloakProvider = new KeycloakProvider(defaultProperties);
 
-            assertThat(thrown.getMessage(), matchesPattern(".+ Connect to localhost:2 .+ failed: .+"));
+                ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getKeycloakVersion);
+
+                assertThat(thrown.getMessage(), matchesPattern(".+ Connect to localhost:2 .+ failed: .+"));
+            } finally {
+                System.clearProperty("http.proxyHost");
+                System.clearProperty("http.proxyPort");
+            }
         }
     }
 
@@ -160,7 +136,7 @@ class KeycloakProviderIT {
         @Test
         void run() throws MalformedURLException {
             var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
-                    .httpProxy(new URL("http://localhost:2"))
+                    .httpProxy("http://localhost:2")
                     .build());
 
             ProcessingException thrown = assertThrows(ProcessingException.class, keycloakProvider::getKeycloakVersion);
@@ -187,7 +163,7 @@ class KeycloakProviderIT {
         @Test
         void run() throws MalformedURLException {
             var keycloakProvider = new KeycloakProvider(ImmutableKeycloakConfigProperties.builder().from(defaultProperties)
-                    .url(new URL("http://crappy|url"))
+                    .url("http://crappy|url")
                     .build());
 
             RuntimeException thrown = assertThrows(RuntimeException.class, () -> keycloakProvider.getCustomApiProxy(ManagementPermissions.class));

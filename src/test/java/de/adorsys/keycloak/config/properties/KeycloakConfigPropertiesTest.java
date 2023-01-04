@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -51,14 +50,11 @@ class KeycloakConfigPropertiesTest {
         assertThat(properties.getClientId(), is("moped-client"));
         assertThat(properties.getUser(), is("otherUser"));
         assertThat(properties.getPassword(), is("otherPassword"));
-        assertThat(properties.getUrl(), is(new URL("https://localhost:8443")));
+        assertThat(properties.getUrl(), is("https://localhost:8443"));
         assertThat(properties.isSslVerify(), is(false));
-        assertThat(properties.getHttpProxy(), is(Optional.of(new URL("http://localhost:8080"))));
+        assertThat(properties.getHttpProxy(), is(Optional.of("http://localhost:8080")));
         assertThat(properties.getConnectTimeout(), is(Duration.ofSeconds(120)));
         assertThat(properties.getReadTimeout(), is(Duration.ofSeconds(20)));
-        assertThat(properties.getAvailabilityCheck().isEnabled(), is(true));
-        assertThat(properties.getAvailabilityCheck().getTimeout(), is(Duration.ofSeconds(60L)));
-        assertThat(properties.getAvailabilityCheck().getRetryDelay(), is(Duration.ofSeconds(10L)));
     }
 
     public static class TestConfiguration implements QuarkusTestProfile {
@@ -74,10 +70,7 @@ class KeycloakConfigPropertiesTest {
                     Map.entry("keycloak.password", "otherPassword"),
                     Map.entry("keycloak.http-proxy", "http://localhost:8080"),
                     Map.entry("keycloak.connect-timeout", "2m"),
-                    Map.entry("keycloak.read-timeout", "20s"),
-                    Map.entry("keycloak.availability-check.enabled", "true"),
-                    Map.entry("keycloak.availability-check.timeout", "60s"),
-                    Map.entry("keycloak.availability-check.retry-delay", "10s")
+                    Map.entry("keycloak.read-timeout", "20s")
             );
         }
     }
