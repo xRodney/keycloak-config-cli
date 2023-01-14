@@ -1063,7 +1063,7 @@ class ImportRolesIT extends AbstractImportIT {
                 )
                 .build());
 
-        doImport("60_update_realm__add_user_with_realm_role.json", realmImportService);
+        doImport("60_update_realm__add_user_with_realm_role.json");
 
         RealmRepresentation realm = keycloakProvider.getInstance().realm(REALM_NAME).partialExport(true, true);
 

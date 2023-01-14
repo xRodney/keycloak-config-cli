@@ -111,7 +111,7 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
                 .build()
         );
 
-        doImport("02_update_realm_client_with_service_account_enabled.json", realmImportService);
+        doImport("02_update_realm_client_with_service_account_enabled.json");
 
         RealmRepresentation realm = keycloakProvider.getInstance().realm(SERVICE_ACCOUNT_REALM).toRepresentation();
 

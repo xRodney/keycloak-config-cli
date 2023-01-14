@@ -64,14 +64,10 @@ abstract public class AbstractImportTest {
     public String resourcePath;
 
     public void doImport(String fileName) throws IOException {
-        doImport(fileName, realmImportService);
-    }
-
-    public void doImport(String fileName, RealmImportService _realmImportService) throws IOException {
         List<RealmImport> realmImports = getImport(fileName);
 
         for (RealmImport realmImport : realmImports) {
-            _realmImportService.doImport(realmImport);
+            realmImportService.doImport(realmImport);
         }
     }
 
@@ -85,6 +81,9 @@ abstract public class AbstractImportTest {
             throw new IllegalArgumentException(fileName);
         }
         String location = url.toString();
+
+
+
         return keycloakImportProvider
                 .readFromLocations(location)
                 .getRealmImports()
