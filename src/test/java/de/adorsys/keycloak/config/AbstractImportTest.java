@@ -138,8 +138,8 @@ abstract public class AbstractImportTest {
 
         Realm realm = new Realm();
         realm.setSpec(spec);
-        realm.setStatus(getStatus(realm));
         realm.setMetadata(meta);
+        realm.setStatus(getStatus(realm));
 
         return realm;
     }

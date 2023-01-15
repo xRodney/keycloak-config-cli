@@ -24,7 +24,6 @@ import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import de.adorsys.keycloak.config.repository.RealmRepository;
-import de.adorsys.keycloak.config.service.checksum.ChecksumService;
 import de.adorsys.keycloak.config.service.state.StateService;
 import de.adorsys.keycloak.config.util.CloneUtil;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -80,7 +79,6 @@ public class RealmImportService {
 
     private final ImportConfigProperties importProperties;
 
-    private final ChecksumService checksumService;
     private final StateService stateService;
 
     @Autowired
@@ -103,7 +101,6 @@ public class RealmImportService {
             ClientAuthorizationImportService clientAuthorizationImportService,
             ClientScopeMappingImportService clientScopeMappingImportService,
             IdentityProviderImportService identityProviderImportService,
-            ChecksumService checksumService,
             StateService stateService) {
         this.importProperties = importProperties;
         this.keycloakProvider = keycloakProvider;
@@ -123,7 +120,6 @@ public class RealmImportService {
         this.clientAuthorizationImportService = clientAuthorizationImportService;
         this.clientScopeMappingImportService = clientScopeMappingImportService;
         this.identityProviderImportService = identityProviderImportService;
-        this.checksumService = checksumService;
         this.stateService = stateService;
     }
 
@@ -142,16 +138,8 @@ public class RealmImportService {
     }
 
     private void updateRealmIfNecessary(String existingRealmName, RealmImport realmImport) {
-        if (!importProperties.getCache().isEnabled() || checksumService.hasToBeUpdated(realmImport)) {
-            setEventsEnabledWorkaround(realmImport);
-            updateRealm(existingRealmName, realmImport);
-        } else {
-            logger.debug(
-                    "No need to update realm '{}', import checksum same: '{}'",
-                    realmImport.getRealm(),
-                    realmImport.getChecksum()
-            );
-        }
+        setEventsEnabledWorkaround(realmImport);
+        updateRealm(existingRealmName, realmImport);
     }
 
     private void setEventsEnabledWorkaround(RealmImport realmImport) {
@@ -171,7 +159,7 @@ public class RealmImportService {
         // refresh the access token to update the scopes. See: https://github.com/adorsys/keycloak-config-cli/issues/339
         keycloakProvider.refreshToken();
 
-        stateService.loadState(realmImport);
+        stateService.loadState();
         configureRealm(realmImport, realm);
     }
 
@@ -182,7 +170,7 @@ public class RealmImportService {
 
         // The state must be loaded before we update realm to prevent
         // the state erasure by custom attributes from configuration
-        stateService.loadState(realm);
+        stateService.loadState();
 
         realmRepository.update(existingRealmName, realm);
 
@@ -210,7 +198,6 @@ public class RealmImportService {
         clientScopeImportService.doRemoveOrphan(realmImport);
 
         stateService.doImport(realmImport);
-        checksumService.doImport(realmImport);
     }
 
     public void deleteRealm(String realmName) {

@@ -20,6 +20,7 @@
 
 package com.github.xrodney.keycloak.operator;
 
+import com.github.xrodney.keycloak.operator.configuration.ReconciledResourceProvider;
 import com.github.xrodney.keycloak.operator.spec.DefaultStatus;
 import com.github.xrodney.keycloak.operator.spec.KeycloakConnection;
 import com.github.xrodney.keycloak.operator.spec.Realm;
@@ -30,7 +31,6 @@ import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
-import de.adorsys.keycloak.config.repository.StateRepository;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -52,18 +52,18 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
     private final KubernetesClient kubernetesClient;
     private final KeycloakProvider keycloakProvider;
-    private final StateRepository stateRepository;
+    private final ReconciledResourceProvider reconciledResourceProvider;
     private final ImportConfigPropertiesProvider importConfigPropertiesProvider;
     private final RealmImportService realmImportService;
 
     public KeycloakConfigController(KubernetesClient kubernetesClient,
                                     KeycloakProvider keycloakProvider,
-                                    StateRepository stateRepository,
+                                    ReconciledResourceProvider reconciledResourceProvider,
                                     ImportConfigPropertiesProvider importConfigPropertiesProvider,
                                     RealmImportService realmImportService) {
         this.kubernetesClient = kubernetesClient;
         this.keycloakProvider = keycloakProvider;
-        this.stateRepository = stateRepository;
+        this.reconciledResourceProvider = reconciledResourceProvider;
         this.importConfigPropertiesProvider = importConfigPropertiesProvider;
         this.realmImportService = realmImportService;
     }
@@ -72,6 +72,7 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @ActivateRequestContext
     public DeleteControl cleanup(Realm resource, Context context) {
         log.info("Execution cleanup for: {}", resource.getMetadata().getName());
+        reconciledResourceProvider.setResource(resource);
 
         String deployedRealm = resource.getStatus() != null ? resource.getStatus().getExternalId() : null;
         if (deployedRealm == null) {
@@ -96,13 +97,12 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @Override
     @ActivateRequestContext
     public UpdateControl<Realm> reconcile(Realm resource, Context context) {
-        DefaultStatus status = new DefaultStatus();
         try {
             importConfigPropertiesProvider.editConfig(config -> mergeConfig(resource.getSpec().getImportProperties(), config));
             keycloakProvider.editProperties(config -> mergeKeycloakConnection(resource, config));
-            //stateRepository.register(status));
 
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
+            DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
 
             RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 

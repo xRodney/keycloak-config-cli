@@ -49,18 +49,8 @@ public class StateService {
         this.importConfigProperties = importConfigProperties;
     }
 
-    public void loadState(RealmImport realmImport) {
-        stateRepository.loadCustomAttributes(realmImport.getRealm());
-    }
-
-    /**
-     * Loads the realm states and preserves it into the realm representation object
-     * to prevent state erasure during realm update
-     *
-     * @param realmImport the {@link RealmRepresentation} instance which will be synchronized with the Keycloak
-     */
-    public void loadState(RealmRepresentation realmImport) {
-        stateRepository.loadCustomAttributes(realmImport);
+    public void loadState() {
+        stateRepository.loadCustomAttributes();
     }
 
     public void doImport(RealmImport realmImport) {
@@ -75,7 +65,7 @@ public class StateService {
         setComponents(realmImport);
         setClientAuthorizationResources(realmImport);
 
-        stateRepository.update(realmImport);
+        stateRepository.update();
         logger.debug("Updated states of realm '{}'", realmImport.getRealm());
     }
 

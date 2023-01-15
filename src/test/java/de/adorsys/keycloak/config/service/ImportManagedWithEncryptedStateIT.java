@@ -77,7 +77,6 @@ class ImportManagedWithEncryptedStateIT extends AbstractImportIT {
 
         String attributeKey = MessageFormat.format(
                 ImportConfigProperties.REALM_STATE_ATTRIBUTE_PREFIX_KEY,
-                importConfigProperties.getCache().getKey(),
                 "roles-realm"
         ) + "-0";
 
@@ -95,7 +94,6 @@ class ImportManagedWithEncryptedStateIT extends AbstractImportIT {
 
         String attributeKey = MessageFormat.format(
                 ImportConfigProperties.REALM_STATE_ATTRIBUTE_PREFIX_KEY,
-                importConfigProperties.getCache().getKey(),
                 "roles-realm"
         ) + "-0";
 

@@ -41,9 +41,6 @@ public interface ImportConfigProperties {
     @WithName("behaviors")
     ImportBehaviorsProperties getBehaviors();
 
-    @WithName("cache")
-    ImportCacheProperties getCache();
-
     @WithName("managed")
     ImportManagedProperties getManaged();
 
@@ -127,16 +124,6 @@ public interface ImportConfigProperties {
 
         @WithName("skip-attributes-for-federated-user")
         boolean isSkipAttributesForFederatedUser();
-    }
-
-    @SuppressWarnings("unused")
-    @Value.Immutable
-    interface ImportCacheProperties {
-        @WithName("enabled")
-        boolean isEnabled();
-
-        @WithName("key")
-        String getKey();
     }
 
     @SuppressWarnings("unused")

@@ -55,8 +55,6 @@ class ImportConfigPropertiesTest {
         assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));
         assertThat(properties.getVarSubstitution().getPrefix(), is("${"));
         assertThat(properties.getVarSubstitution().getSuffix(), is("}"));
-        assertThat(properties.getCache().isEnabled(), is(false));
-        assertThat(properties.getCache().getKey(), is("custom"));
         assertThat(properties.getRemoteState().isEnabled(), is(false));
         assertThat(properties.getRemoteState().getEncryptionKey(), is("password"));
         assertThat(properties.getRemoteState().getEncryptionSalt(), is("0123456789ABCDEFabcdef"));
@@ -83,18 +81,12 @@ class ImportConfigPropertiesTest {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.ofEntries(
-                    //Map.entry("import.parallel", "true"),
                     Map.entry("import.validate", "false"),
-//                    Map.entry("import.files.locations", "other"),
-//                    Map.entry("import.files.include-hidden-files", "true"),
-//                    Map.entry("import.files.excludes", "exclude1,exclude2"),
                     Map.entry("import.var-substitution.enabled", "true"),
                     Map.entry("import.var-substitution.nested", "false"),
                     Map.entry("import.var-substitution.undefined-is-error", "false"),
                     Map.entry("import.var-substitution.prefix", "$${"),
                     Map.entry("import.var-substitution.suffix", "}"),
-                    Map.entry("import.cache.enabled", "false"),
-                    Map.entry("import.cache.key", "custom"),
                     Map.entry("import.remote-state.enabled", "false"),
                     Map.entry("import.remote-state.encryption-key", "password"),
                     Map.entry("import.remote-state.encryption-salt", "0123456789ABCDEFabcdef"),
