@@ -51,10 +51,13 @@ public class ChecksumService {
         Map<String, String> customAttributes = existingRealm.getAttributes();
 
         String importChecksum = realmImport.getChecksum();
-        customAttributes.put(getCustomAttributeKey(), importChecksum);
-        realmRepository.update(existingRealm);
-
-        logger.debug("Updated import checksum of realm '{}' to '{}'", realmImport.getRealm(), importChecksum);
+        if (importChecksum != null) {
+            customAttributes.put(getCustomAttributeKey(), importChecksum);
+            realmRepository.update(existingRealm);
+            logger.debug("Updated import checksum of realm '{}' to '{}'", realmImport.getRealm(), importChecksum);
+        } else {
+            logger.debug("NOT Updated import checksum of realm '{}' to '{}'", realmImport.getRealm(), importChecksum);
+        }
     }
 
     public boolean hasToBeUpdated(RealmImport realmImport) {
@@ -62,8 +65,11 @@ public class ChecksumService {
         Map<String, String> customAttributes = existingRealm.getAttributes();
 
         String readChecksum = customAttributes.get(getCustomAttributeKey());
+        if ("null".equals(readChecksum)) {
+            throw new IllegalStateException(readChecksum);
+        }
 
-        return !Objects.equals(realmImport.getChecksum(), readChecksum);
+        return readChecksum == null || !Objects.equals(realmImport.getChecksum(), readChecksum);
     }
 
     private String getCustomAttributeKey() {

@@ -23,7 +23,6 @@ package de.adorsys.keycloak.config.service;
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.exception.InvalidImportException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -335,9 +334,9 @@ class ImportUsersIT extends AbstractImportIT {
     @Test
     @Order(7)
     void shouldNotUpdateRealmUserWithNonExistsRole() throws IOException {
-        RealmImport foundImport = getFirstImport("07_update_realm_try_to_create_user_invalid_role.json");
+        var foundImport = getFirstImport("07_update_realm_try_to_create_user_invalid_role.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Could not find role 'not_exists' in realm 'realmWithUsers'!"));
     }
@@ -345,9 +344,9 @@ class ImportUsersIT extends AbstractImportIT {
     @Test
     @Order(8)
     void shouldNotUpdateRealmUserWithNonExistsGroup() throws IOException {
-        RealmImport foundImport = getFirstImport("08_update_realm_try_to_create_user_invalid_group.json");
+        var foundImport = getFirstImport("08_update_realm_try_to_create_user_invalid_group.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Could not find group '/not_exists' in realm 'realmWithUsers'!"));
     }

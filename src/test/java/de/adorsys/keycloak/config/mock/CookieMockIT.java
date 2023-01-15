@@ -21,7 +21,6 @@
 package de.adorsys.keycloak.config.mock;
 
 import de.adorsys.keycloak.config.AbstractImportTest;
-import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.ImmutableImportCacheProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportRemoteStateProperties;
@@ -101,7 +100,7 @@ class CookieMockIT extends AbstractImportTest {
             return KeycloakMock.serverInfo(request);
         });
 
-        RealmImport realmImport = getFirstImport("00_create_simple-realm.json");
-        realmImportService.doImport(realmImport);
+        var realmImport = getFirstImport("00_create_simple-realm.json");
+        doImport(realmImport);
     }
 }

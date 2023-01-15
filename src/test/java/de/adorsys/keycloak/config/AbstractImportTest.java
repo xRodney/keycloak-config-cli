@@ -20,21 +20,35 @@
 
 package de.adorsys.keycloak.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.xrodney.keycloak.operator.spec.DefaultStatus;
+import com.github.xrodney.keycloak.operator.spec.KeycloakConnection;
+import com.github.xrodney.keycloak.operator.spec.Realm;
+import com.github.xrodney.keycloak.operator.spec.RealmSpec;
 import de.adorsys.keycloak.config.configuration.ImportConfigPropertiesProvider;
 import de.adorsys.keycloak.config.extensions.GithubActionsExtension;
 import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.provider.KeycloakImportProvider;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
-import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.test.util.KeycloakAuthentication;
 import de.adorsys.keycloak.config.test.util.KeycloakRepository;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.javaoperatorsdk.operator.Operator;
+import io.javaoperatorsdk.operator.api.reconciler.DefaultContext;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import io.javaoperatorsdk.operator.processing.Controller;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.keycloak.representations.idm.RealmRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -43,8 +57,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 @Timeout(value = 30, unit = SECONDS)
 abstract public class AbstractImportTest {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+    private Map<String, DefaultStatus> statuses = new HashMap<>();
+
     @Autowired
-    public RealmImportService realmImportService;
+    public Operator operator;
 
     @Autowired
     public KeycloakImportProvider keycloakImportProvider;
@@ -64,34 +83,77 @@ abstract public class AbstractImportTest {
     public String resourcePath;
 
     public void doImport(String fileName) throws IOException {
-        List<RealmImport> realmImports = getImport(fileName);
+        Realm realm = getImport(fileName);
+        doImport(realm);
+    }
 
-        for (RealmImport realmImport : realmImports) {
-            realmImportService.doImport(realmImport);
+    public <P extends CustomResource<?, ? extends DefaultStatus>> void doImport(P realm) throws IOException {
+        var controllers = operator.getRegisteredControllers();
+
+        var maybeRegisteredController = controllers.stream()
+                .filter(c -> c.getConfiguration().getResourceClass() == realm.getClass())
+                .findFirst();
+
+        var controller = (Controller<P>) maybeRegisteredController
+                .orElseThrow(() -> new IllegalStateException("No registered controller for " + realm.getClass()));
+
+        UpdateControl<P> result;
+        try {
+            result = controller.reconcile(realm,
+                    new DefaultContext<>(null, controller, realm));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        if (result.isUpdateStatus()) {
+            putStatus(realm);
+        }
+
+        if (realm.getStatus().getException() != null) {
+            throw realm.getStatus().getException();
         }
     }
 
-    public RealmImport getFirstImport(String fileName) throws IOException {
-        return getImport(fileName).get(0);
+    @Deprecated
+    public Realm getFirstImport(String fileName) throws IOException {
+        return getImport(fileName);
     }
 
-    public List<RealmImport> getImport(String fileName) throws IOException {
+    public Realm getImport(String fileName) throws IOException {
         URL url = getClass().getClassLoader().getResource(this.resourcePath + '/' + fileName);
         if (url == null) {
             throw new IllegalArgumentException(fileName);
         }
-        String location = url.toString();
 
+        RealmRepresentation realmRepresentation = OBJECT_MAPPER.readValue(url, RealmImport.class);
 
+        RealmSpec spec = new RealmSpec();
+        spec.setRealm(realmRepresentation);
+        spec.setImportProperties(configPropertiesProvider.getConfig());
+        spec.setKeycloakConnection(KeycloakConnection.fromConfig(keycloakProvider.getProperties()));
 
-        return keycloakImportProvider
-                .readFromLocations(location)
-                .getRealmImports()
-                .get(location)
-                .entrySet()
-                .stream()
-                .findFirst()
-                .orElseThrow()
-                .getValue();
+        ObjectMeta meta = new ObjectMeta();
+        meta.setName(realmRepresentation.getRealm());
+
+        Realm realm = new Realm();
+        realm.setSpec(spec);
+        realm.setStatus(getStatus(realm));
+        realm.setMetadata(meta);
+
+        return realm;
+    }
+
+    private <P extends CustomResource<?, ? extends DefaultStatus>> void putStatus(P realm) {
+        statuses.put(getCacheKey(realm), realm.getStatus());
+    }
+
+    private <P extends CustomResource<?, ? extends DefaultStatus>> DefaultStatus getStatus(P realm) {
+        return statuses.get(getCacheKey(realm));
+    }
+
+    @NotNull
+    private static <P extends CustomResource<?, ? extends DefaultStatus>> String getCacheKey(P realm) {
+        return realm.getCRDName() + "/" + realm.getMetadata().getName();
     }
 }

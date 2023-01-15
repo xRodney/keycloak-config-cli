@@ -20,6 +20,7 @@
 
 package com.github.xrodney.keycloak.operator.spec;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.PrinterColumn;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,8 @@ public class DefaultStatus {
     private State state = State.UNKNOWN;
     @PrinterColumn
     private String message;
+    @JsonIgnore
+    private RuntimeException exception;
     private Map<String, List<String>> status;
 
     public State getState() {
@@ -74,6 +77,14 @@ public class DefaultStatus {
 
     public void setStatus(Map<String, List<String>> status) {
         this.status = status;
+    }
+
+    public RuntimeException getException() {
+        return exception;
+    }
+
+    public void setException(RuntimeException exception) {
+        this.exception = exception;
     }
 
     public enum State {

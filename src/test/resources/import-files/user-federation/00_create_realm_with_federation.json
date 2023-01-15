@@ -187,7 +187,7 @@
             "entryUUID"
           ],
           "connectionUrl": [
-            "ldap://$(sys:JUNIT_LDAP_HOST):$(sys:JUNIT_LDAP_PORT)"
+            "ldap://host.testcontainers.internal:33389"
           ],
           "allowKerberosAuthentication": [
             "false"

@@ -20,6 +20,8 @@
 
 package com.github.xrodney.keycloak.operator.spec;
 
+import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
+
 import javax.validation.constraints.NotNull;
 
 public class KeycloakConnection {
@@ -113,5 +115,24 @@ public class KeycloakConnection {
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public static KeycloakConnection fromConfig(KeycloakConfigProperties properties) {
+        KeycloakConnection connection = new KeycloakConnection();
+        connection.setLoginRealm(properties.getLoginRealm());
+        connection.setClientId(properties.getClientId());
+        connection.setUrl(properties.getUrl());
+        connection.setUser(properties.getUser());
+        connection.setPasswordSecret(getSecretRef(properties.getPassword()));
+        connection.setClientSecretSecret(getSecretRef(properties.getClientSecret()));
+        connection.setGrantType(properties.getGrantType());
+        connection.setSslVerify(properties.isSslVerify());
+//        connection.setConnectTimeout(properties.getConnectTimeout());
+//        connection.setReadTimeout(properties.getReadTimeout());
+        return connection;
+    }
+
+    private static SecretRef getSecretRef(String value) {
+        return value == null ? null : SecretRef.immediate(value);
     }
 }

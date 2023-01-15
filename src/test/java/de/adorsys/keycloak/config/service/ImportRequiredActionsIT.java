@@ -21,7 +21,6 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -66,9 +65,9 @@ class ImportRequiredActionsIT extends AbstractImportIT {
     @Test
     @Order(1)
     void shouldFailIfAddingInvalidRequiredActionName() throws IOException {
-        RealmImport foundImport = getFirstImport("01_update_realm__try_adding_invalid_required-action.json");
+        var foundImport = getFirstImport("01_update_realm__try_adding_invalid_required-action.json");
 
-        realmImportService.doImport(foundImport);
+        doImport(foundImport);
 
         RealmRepresentation updatedRealm = keycloakProvider.getInstance().realm(REALM_NAME).partialExport(true, true);
 

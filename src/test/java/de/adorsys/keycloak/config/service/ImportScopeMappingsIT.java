@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -322,9 +321,9 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     @Test
     @Order(10)
     void shouldThrowOnUpdateRealmNonExistClientScope() throws IOException {
-        RealmImport foundImport = getFirstImport("10_1_update-realm__throw-invalid-client-scope.json");
+        var foundImport = getFirstImport("10_1_update-realm__throw-invalid-client-scope.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport));
+        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Cannot find client-scope by name 'non-exists-client-scope'"));
     }
@@ -332,9 +331,9 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     @Test
     @Order(11)
     void shouldThrowOnUpdateRealmClientScopeWithNonExistRoles() throws IOException {
-        RealmImport foundImport = getFirstImport("10_2_update-realm__throw-invalid-client-scope-role.json");
+        var foundImport = getFirstImport("10_2_update-realm__throw-invalid-client-scope-role.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport));
+        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Cannot find realm role 'non-exists-role' within realm 'realmWithScopeMappings'"));
     }
@@ -342,9 +341,9 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     @Test
     @Order(12)
     void shouldThrowOnUpdateRealmNonExistClient() throws IOException {
-        RealmImport foundImport = getFirstImport("10_3_update-realm__throw-invalid-client.json");
+        var foundImport = getFirstImport("10_3_update-realm__throw-invalid-client.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport));
+        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Cannot find client by clientId 'non-exists-client'"));
     }
@@ -352,9 +351,9 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     @Test
     @Order(13)
     void shouldThrowOnUpdateRealmClientWithNonExistRoles() throws IOException {
-        RealmImport foundImport = getFirstImport("10_4_update-realm__throw-invalid-client-role.json");
+        var foundImport = getFirstImport("10_4_update-realm__throw-invalid-client-role.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> realmImportService.doImport(foundImport));
+        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Cannot find realm role 'non-exists-role' within realm 'realmWithScopeMappings'"));
     }

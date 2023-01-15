@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -217,9 +216,9 @@ class ImportClientScopesIT extends AbstractImportIT {
     @Test
     @Order(6)
     void shouldNotUpdateRealmUpdateScopeMappingsWithError() throws IOException {
-        RealmImport foundImport = getFirstImport("06_update_realm__try-to-change_clientScope_invalid_protocolMapper.json");
+        var foundImport = getFirstImport("06_update_realm__try-to-change_clientScope_invalid_protocolMapper.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot update protocolMapper 'my_replaced_protocol_mapper' for clientScope 'my_other_clientScope' in realm 'realmWithClientScopes': .*"));
     }

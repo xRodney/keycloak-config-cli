@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.InvalidImportException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -84,9 +83,9 @@ class ImportDefaultGroupsIT extends AbstractImportIT {
     @Test
     @Order(96)
     void shouldUpdateRealmAddNonExistSubGroup() throws IOException {
-        RealmImport foundImport = getFirstImport("96_update_realm_add_non_exists_default_subgroup.json");
+        var foundImport = getFirstImport("96_update_realm_add_non_exists_default_subgroup.json");
 
-        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> realmImportService.doImport(foundImport));
+        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Unable to add default group '/not-exist'. Does group exists?"));
     }

@@ -36,6 +36,7 @@ import de.adorsys.keycloak.config.util.CloneUtil;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.*;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +132,9 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     private static DefaultStatus errorStatus(Exception e) {
         DefaultStatus status = new DefaultStatus();
         status.setState(DefaultStatus.State.ERROR);
+        if (e instanceof RuntimeException) {
+            status.setException((RuntimeException) e);
+        }
 
         String message = e.getMessage();
         if (e instanceof WebApplicationException) {
@@ -183,6 +187,10 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     }
 
     private String readPassword(SecretRef secretRef, String currentNamespace) {
+        if (StringUtils.isNotEmpty(secretRef.getImmediateValue())) {
+            return secretRef.getImmediateValue();
+        }
+
         Secret credentialSecret = kubernetesClient
                 .secrets()
                 .inNamespace(Objects.requireNonNullElse(secretRef.getNamespace(), currentNamespace))

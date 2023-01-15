@@ -20,14 +20,32 @@
 
 package com.github.xrodney.keycloak.operator.spec;
 
-import javax.validation.constraints.NotNull;
-
 public class SecretRef {
-    @NotNull
     private String name;
     private String namespace;
-    @NotNull
     private String key;
+    private String immediateValue;
+
+    public static SecretRef ref(String name, String key) {
+        SecretRef ref = new SecretRef();
+        ref.setName(name);
+        ref.setKey(key);
+        return ref;
+    }
+
+    public static SecretRef ref(String namespace, String name, String key) {
+        SecretRef ref = new SecretRef();
+        ref.setNamespace(namespace);
+        ref.setName(name);
+        ref.setKey(key);
+        return ref;
+    }
+
+    public static SecretRef immediate(String value) {
+        SecretRef ref = new SecretRef();
+        ref.setImmediateValue(value);
+        return ref;
+    }
 
     public String getName() {
         return name;
@@ -51,5 +69,13 @@ public class SecretRef {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getImmediateValue() {
+        return immediateValue;
+    }
+
+    public void setImmediateValue(String immediateValue) {
+        this.immediateValue = immediateValue;
     }
 }

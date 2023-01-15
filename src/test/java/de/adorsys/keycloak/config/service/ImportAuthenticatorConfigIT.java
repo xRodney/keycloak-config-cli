@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -199,9 +198,9 @@ class ImportAuthenticatorConfigIT extends AbstractImportIT {
     @Test
     @Order(9)
     void shouldThrowInvalidAuthConfig() throws IOException {
-        RealmImport foundImport = getFirstImport("9_update_realm__invalid_auth_config.json");
+        var foundImport = getFirstImport("9_update_realm__invalid_auth_config.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), is("Authenticator Config 'custom-recaptcha' not found. Config must be used in execution"));
     }

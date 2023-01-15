@@ -71,6 +71,10 @@ public class KeycloakProvider implements AutoCloseable {
         setProperties(editor.apply(properties));
     }
 
+    public KeycloakConfigProperties getProperties() {
+        return properties;
+    }
+
     public Keycloak getInstance() {
         if (keycloak == null || keycloak.isClosed()) {
             keycloak = createKeycloak();

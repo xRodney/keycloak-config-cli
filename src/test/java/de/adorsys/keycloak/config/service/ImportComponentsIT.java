@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
-import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportManagedProperties;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
@@ -712,9 +711,9 @@ class ImportComponentsIT extends AbstractImportIT {
     @Order(12)
     @DisabledIfSystemProperty(named = "keycloak.version", matches = "17.0.0", disabledReason = "https://github.com/keycloak/keycloak/issues/10176")
     void shouldNotCreateComponents() throws IOException {
-        RealmImport foundImport = getFirstImport("12_update_realm__try-to-create-component.json");
+        var foundImport = getFirstImport("12_update_realm__try-to-create-component.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> realmImportService.doImport(foundImport));
+        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot create component '.*' in realm 'realmWithSubComponents': .*"));
     }
