@@ -35,7 +35,6 @@ import static de.adorsys.keycloak.config.test.util.KeycloakRepository.getAuthent
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"java:S5961", "java:S5976"})
 @QuarkusTest
@@ -200,7 +199,7 @@ class ImportAuthenticatorConfigIT extends AbstractImportIT {
     void shouldThrowInvalidAuthConfig() throws IOException {
         var foundImport = getFirstImport("9_update_realm__invalid_auth_config.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Authenticator Config 'custom-recaptcha' not found. Config must be used in execution"));
     }

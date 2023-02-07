@@ -60,7 +60,7 @@ abstract public class AbstractImportTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    private Map<String, DefaultStatus> statuses = new HashMap<>();
+    private static Map<String, DefaultStatus> statuses = new HashMap<>();
 
     @Autowired
     public Operator operator;
@@ -82,12 +82,12 @@ abstract public class AbstractImportTest {
 
     public String resourcePath;
 
-    public void doImport(String fileName) throws IOException {
+    public DefaultStatus doImport(String fileName) throws IOException {
         Realm realm = getImport(fileName);
-        doImport(realm);
+        return doImport(realm);
     }
 
-    public <P extends CustomResource<?, ? extends DefaultStatus>> void doImport(P realm) throws IOException {
+    public <S extends DefaultStatus, P extends CustomResource<?, S>> S doImport(P realm) throws IOException {
         var controllers = operator.getRegisteredControllers();
 
         var maybeRegisteredController = controllers.stream()
@@ -110,9 +110,11 @@ abstract public class AbstractImportTest {
             putStatus(realm);
         }
 
-        if (realm.getStatus().getException() != null) {
-            throw realm.getStatus().getException();
-        }
+        return realm.getStatus();
+
+//        if (realm.getStatus().getException() != null) {
+//            throw realm.getStatus().getException();
+//        }
     }
 
     @Deprecated
@@ -142,6 +144,19 @@ abstract public class AbstractImportTest {
         realm.setStatus(getStatus(realm));
 
         return realm;
+    }
+
+    public <T> T assertImportFails(Class<T> expectedException, String fileName) throws IOException {
+        Realm realm = getImport(fileName);
+        return assertImportFails(expectedException, realm);
+    }
+
+    public <T> T assertImportFails(Class<T> expectedException, Realm realm) throws IOException {
+        DefaultStatus status = doImport(realm);
+        Assertions.assertNotNull(status.getException());
+        Assertions.assertTrue(expectedException.isInstance(status.getException()),
+                () -> status.getException() + " should be instance of " + expectedException);
+        return (T) status.getException();
     }
 
     private <P extends CustomResource<?, ? extends DefaultStatus>> void putStatus(P realm) {

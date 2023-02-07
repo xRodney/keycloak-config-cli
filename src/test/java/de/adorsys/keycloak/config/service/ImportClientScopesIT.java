@@ -38,7 +38,6 @@ import java.util.Objects;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @QuarkusTest
 class ImportClientScopesIT extends AbstractImportIT {
@@ -218,7 +217,7 @@ class ImportClientScopesIT extends AbstractImportIT {
     void shouldNotUpdateRealmUpdateScopeMappingsWithError() throws IOException {
         var foundImport = getFirstImport("06_update_realm__try-to-change_clientScope_invalid_protocolMapper.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot update protocolMapper 'my_replaced_protocol_mapper' for clientScope 'my_other_clientScope' in realm 'realmWithClientScopes': .*"));
     }

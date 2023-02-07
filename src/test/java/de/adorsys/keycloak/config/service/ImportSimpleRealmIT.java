@@ -35,7 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"java:S5961", "java:S5976"})
 @QuarkusTest
@@ -112,10 +111,10 @@ class ImportSimpleRealmIT extends AbstractImportIT {
 
     @Test
     @Order(4)
-    void shouldNotCreateSimpleRealmWithInvalidName() {
-        KeycloakRepositoryException thrown = assertThrows(
+    void shouldNotCreateSimpleRealmWithInvalidName() throws IOException {
+        KeycloakRepositoryException thrown = assertImportFails(
                 KeycloakRepositoryException.class,
-                () -> doImport("04_create_simple-realm_with_invalid_name.json")
+                "04_create_simple-realm_with_invalid_name.json"
         );
 
         assertThat(thrown.getMessage(), matchesPattern("^Cannot create realm '.+': .+$"));
@@ -197,10 +196,10 @@ class ImportSimpleRealmIT extends AbstractImportIT {
 
     @Test
     @Order(9)
-    void shouldNotUpdateSimpleRealmWithInvalidName() {
-        KeycloakRepositoryException thrown = assertThrows(
+    void shouldNotUpdateSimpleRealmWithInvalidName() throws IOException {
+        KeycloakRepositoryException thrown = assertImportFails(
                 KeycloakRepositoryException.class,
-                () -> doImport("09_update_simple-realm_with_invalid_property.json")
+                "09_update_simple-realm_with_invalid_property.json"
         );
 
         assertThat(thrown.getMessage(), matchesPattern("^Cannot update realm '.+': .+$"));
@@ -261,16 +260,16 @@ class ImportSimpleRealmIT extends AbstractImportIT {
         assertThat(realm.getDefaultOptionalClientScopes(), empty());
 
         ImportProcessingException thrown;
-        thrown = assertThrows(
+        thrown = assertImportFails(
                 ImportProcessingException.class,
-                () -> doImport("10.5_update_simple-realm_invalid-default_defaultScopes.json")
+                "10.5_update_simple-realm_invalid-default_defaultScopes.json"
         );
 
         assertThat(thrown.getMessage(), is("Could not find client scope 'non-exist' in realm 'simple'!"));
 
-        thrown = assertThrows(
+        thrown = assertImportFails(
                 ImportProcessingException.class,
-                () -> doImport("10.6_update_simple-realm_invalid-optional_defaultScopes.json")
+                "10.6_update_simple-realm_invalid-optional_defaultScopes.json"
         );
 
         assertThat(thrown.getMessage(), is("Could not find client scope 'non-exist' in realm 'simple'!"));

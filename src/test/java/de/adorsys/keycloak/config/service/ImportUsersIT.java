@@ -336,7 +336,7 @@ class ImportUsersIT extends AbstractImportIT {
     void shouldNotUpdateRealmUserWithNonExistsRole() throws IOException {
         var foundImport = getFirstImport("07_update_realm_try_to_create_user_invalid_role.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Could not find role 'not_exists' in realm 'realmWithUsers'!"));
     }
@@ -346,7 +346,7 @@ class ImportUsersIT extends AbstractImportIT {
     void shouldNotUpdateRealmUserWithNonExistsGroup() throws IOException {
         var foundImport = getFirstImport("08_update_realm_try_to_create_user_invalid_group.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Could not find group '/not_exists' in realm 'realmWithUsers'!"));
     }
@@ -518,7 +518,7 @@ class ImportUsersIT extends AbstractImportIT {
         assertThat(user.getLastName(), is("My lastname 1"));
 
 
-        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> doImport("50.3_update_realm_with_email_as_username_with_invalid_username.json"));
+        InvalidImportException thrown = assertImportFails(InvalidImportException.class, "50.3_update_realm_with_email_as_username_with_invalid_username.json");
         assertThat(thrown.getMessage(), is("Invalid user 'otheruser' in realm 'realmWithUsers': username (otheruser) and email (otheruser@mail.de) is different while 'email as username' is enabled on realm."));
 
         doImport("50.4_update_realm_with_email_as_username_with_correct_username.json");

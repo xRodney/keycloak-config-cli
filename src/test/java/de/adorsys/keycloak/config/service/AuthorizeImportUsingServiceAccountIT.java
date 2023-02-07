@@ -85,7 +85,7 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
 
     @Test
     @Order(2)
-    void masterCredentialsUnauthorized() {
+    void masterCredentialsUnauthorized() throws IOException {
         keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
                 .loginRealm(MASTER_REALM)
                 .grantType("client_credentials")
@@ -94,8 +94,8 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
                 .build()
         );
 
-        Assertions.assertThrows(NotAuthorizedException.class,
-                () -> doImport("01_create_realm_client_with_service_account_enabled.json"));
+        assertImportFails(NotAuthorizedException.class,
+                "01_create_realm_client_with_service_account_enabled.json");
 
         Assertions.assertDoesNotThrow(() -> keycloakProvider.close());
     }
@@ -125,7 +125,7 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
 
     @Test
     @Order(3)
-    void serviceAccountRealmCredentialsUnauthorized() {
+    void serviceAccountRealmCredentialsUnauthorized() throws IOException {
         keycloakProvider.editProperties(properties -> ImmutableKeycloakConfigProperties.builder().from(properties)
                 .loginRealm("service-account")
                 .grantType("client_credentials")
@@ -134,8 +134,8 @@ class AuthorizeImportUsingServiceAccountIT extends AbstractImportIT {
                 .build()
         );
 
-        Assertions.assertThrows(NotAuthorizedException.class,
-                () -> doImport("02_update_realm_client_with_service_account_enabled.json"));
+        assertImportFails(NotAuthorizedException.class,
+                "02_update_realm_client_with_service_account_enabled.json");
 
 
         Assertions.assertDoesNotThrow(() -> keycloakProvider.close());

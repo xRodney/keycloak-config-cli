@@ -33,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"java:S5961", "java:S5976"})
 @QuarkusTest
@@ -85,7 +84,7 @@ class ImportDefaultGroupsIT extends AbstractImportIT {
     void shouldUpdateRealmAddNonExistSubGroup() throws IOException {
         var foundImport = getFirstImport("96_update_realm_add_non_exists_default_subgroup.json");
 
-        InvalidImportException thrown = assertThrows(InvalidImportException.class, () -> doImport(foundImport));
+        InvalidImportException thrown = assertImportFails(InvalidImportException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Unable to add default group '/not-exist'. Does group exists?"));
     }

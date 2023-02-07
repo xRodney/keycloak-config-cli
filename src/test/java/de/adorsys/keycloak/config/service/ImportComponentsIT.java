@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"java:S5961", "java:S5976", "SameParameterValue", "CommentedOutCode"})
 @QuarkusTest
@@ -713,7 +712,7 @@ class ImportComponentsIT extends AbstractImportIT {
     void shouldNotCreateComponents() throws IOException {
         var foundImport = getFirstImport("12_update_realm__try-to-create-component.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), matchesPattern("Cannot create component '.*' in realm 'realmWithSubComponents': .*"));
     }

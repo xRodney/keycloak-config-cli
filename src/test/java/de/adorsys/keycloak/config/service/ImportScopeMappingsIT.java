@@ -39,7 +39,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"java:S5961", "java:S5976"})
 @QuarkusTest
@@ -323,7 +322,7 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     void shouldThrowOnUpdateRealmNonExistClientScope() throws IOException {
         var foundImport = getFirstImport("10_1_update-realm__throw-invalid-client-scope.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Cannot find client-scope by name 'non-exists-client-scope'"));
     }
@@ -333,7 +332,7 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     void shouldThrowOnUpdateRealmClientScopeWithNonExistRoles() throws IOException {
         var foundImport = getFirstImport("10_2_update-realm__throw-invalid-client-scope-role.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Cannot find realm role 'non-exists-role' within realm 'realmWithScopeMappings'"));
     }
@@ -343,7 +342,7 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     void shouldThrowOnUpdateRealmNonExistClient() throws IOException {
         var foundImport = getFirstImport("10_3_update-realm__throw-invalid-client.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Cannot find client by clientId 'non-exists-client'"));
     }
@@ -353,7 +352,7 @@ class ImportScopeMappingsIT extends AbstractImportIT {
     void shouldThrowOnUpdateRealmClientWithNonExistRoles() throws IOException {
         var foundImport = getFirstImport("10_4_update-realm__throw-invalid-client-role.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Cannot find realm role 'non-exists-role' within realm 'realmWithScopeMappings'"));
     }

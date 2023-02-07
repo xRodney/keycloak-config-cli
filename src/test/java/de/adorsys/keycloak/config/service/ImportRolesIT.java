@@ -41,7 +41,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("java:S5961")
 @QuarkusTest
@@ -467,7 +466,7 @@ class ImportRolesIT extends AbstractImportIT {
         assertThat(composites.getClient(), hasEntry(is("second-moped-client"), containsInAnyOrder("my_other_second_client_role", "my_second_client_role")));
 
         var foundImport = getFirstImport("15.2_update_realm__add_non_existing_composite_client_to_realm_role.json");
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
         assertThat(thrown.getMessage(), is("Error adding composite roles to realm role 'my_composite_client_role': Cannot find client role 'non_exists' within realm 'realmWithRoles'"));
     }
 
@@ -584,7 +583,7 @@ class ImportRolesIT extends AbstractImportIT {
 
 
         var foundImport = getFirstImport("19.2_update_realm__add_non_existing_client_role_composite_to_client_role.json");
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
         assertThat(thrown.getMessage(), is("Error adding composite roles to client role 'my_other_composite_moped_client_role': Cannot find client role 'non_exists' within realm 'realmWithRoles'"));
     }
 
@@ -846,7 +845,7 @@ class ImportRolesIT extends AbstractImportIT {
     void shouldThrowUpdateRealmAddReferNonExistClientRole() throws IOException {
         var foundImport = getFirstImport("28_try-to_update_realm__refer-non-exist-role.json");
 
-        KeycloakRepositoryException thrown = assertThrows(KeycloakRepositoryException.class, () -> doImport(foundImport));
+        KeycloakRepositoryException thrown = assertImportFails(KeycloakRepositoryException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Cannot find client role 'my_non_exist_client_role' for client 'moped-client' within realm 'realmWithRoles'"));
     }
@@ -856,7 +855,7 @@ class ImportRolesIT extends AbstractImportIT {
     void shouldThrowUpdateRealmAddClientRoleWithoutClient() throws IOException {
         var foundImport = getFirstImport("29_try-to_update_realm__add-client-role-without-client.json");
 
-        ImportProcessingException thrown = assertThrows(ImportProcessingException.class, () -> doImport(foundImport));
+        ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
         assertThat(thrown.getMessage(), is("Can't create role 'my_second_client_role' for non existing client 'non-exists-client' in realm 'realmWithRoles'!"));
     }
