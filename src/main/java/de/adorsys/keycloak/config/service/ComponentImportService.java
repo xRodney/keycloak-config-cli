@@ -259,9 +259,9 @@ public class ComponentImportService {
         String parentId = parentComponent != null ? parentComponent.getId() : null;
 
         List<ComponentRepresentation> existingComponents = componentRepository.getAll(realmName, parentId);
-        if (!importConfigProperties.getRemoteState().isEnabled()) {
-            return existingComponents;
-        }
+//        if (!importConfigProperties.getRemoteState().isEnabled()) {
+//            return existingComponents;
+//        }
 
         String parentName = parentComponent != null ? parentComponent.getName() : null;
 

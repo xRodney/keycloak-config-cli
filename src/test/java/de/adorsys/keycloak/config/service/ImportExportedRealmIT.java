@@ -21,10 +21,7 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
-import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
-import de.adorsys.keycloak.config.properties.ImmutableImportRemoteStateProperties;
 import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -43,17 +40,6 @@ class ImportExportedRealmIT extends AbstractImportIT {
 
     ImportExportedRealmIT() {
         this.resourcePath = "import-files/exported-realm/" + KEYCLOAK_VERSION;
-    }
-
-
-    @BeforeEach
-    void setUp() {
-        configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
-                .remoteState(ImmutableImportRemoteStateProperties.builder().from(config.getRemoteState())
-                        .isEnabled(false)
-                        .build()
-                )
-                .build());
     }
 
     @Test

@@ -177,14 +177,14 @@ public class RequiredActionsImportService {
             List<RequiredActionProviderRepresentation> importedRequiredActions,
             List<RequiredActionProviderRepresentation> existingRequiredActions
     ) {
-        if (importConfigProperties.getRemoteState().isEnabled()) {
+//        if (importConfigProperties.getRemoteState().isEnabled()) {
             List<String> requiredActionsInState = stateService.getRequiredActions();
 
             // ignore all object there are not in state
             existingRequiredActions = existingRequiredActions.stream()
                     .filter(requiredAction -> requiredActionsInState.contains(requiredAction.getAlias()))
                     .collect(Collectors.toList());
-        }
+//        }
 
         Set<String> importedRequiredActionAliases = importedRequiredActions.stream()
                 .map(RequiredActionProviderRepresentation::getAlias)

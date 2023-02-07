@@ -55,9 +55,9 @@ class ImportConfigPropertiesTest {
         assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));
         assertThat(properties.getVarSubstitution().getPrefix(), is("${"));
         assertThat(properties.getVarSubstitution().getSuffix(), is("}"));
-        assertThat(properties.getRemoteState().isEnabled(), is(false));
-        assertThat(properties.getRemoteState().getEncryptionKey(), is("password"));
-        assertThat(properties.getRemoteState().getEncryptionSalt(), is("0123456789ABCDEFabcdef"));
+//        assertThat(properties.getRemoteState().isEnabled(), is(false));
+//        assertThat(properties.getRemoteState().getEncryptionKey(), is("password"));
+//        assertThat(properties.getRemoteState().getEncryptionSalt(), is("0123456789ABCDEFabcdef"));
         assertThat(properties.getManaged().getAuthenticationFlow(), is(ImportManagedPropertiesValues.NO_DELETE));
         assertThat(properties.getManaged().getGroup(), is(ImportManagedPropertiesValues.NO_DELETE));
         assertThat(properties.getManaged().getRequiredAction(), is(ImportManagedPropertiesValues.NO_DELETE));
@@ -87,9 +87,6 @@ class ImportConfigPropertiesTest {
                     Map.entry("import.var-substitution.undefined-is-error", "false"),
                     Map.entry("import.var-substitution.prefix", "$${"),
                     Map.entry("import.var-substitution.suffix", "}"),
-                    Map.entry("import.remote-state.enabled", "false"),
-                    Map.entry("import.remote-state.encryption-key", "password"),
-                    Map.entry("import.remote-state.encryption-salt", "0123456789ABCDEFabcdef"),
                     Map.entry("import.managed.authentication-flow", "no-delete"),
                     Map.entry("import.managed.group", "no-delete"),
                     Map.entry("import.managed.required-action", "no-delete"),

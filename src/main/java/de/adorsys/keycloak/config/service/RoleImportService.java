@@ -245,14 +245,14 @@ public class RoleImportService {
             List<RoleRepresentation> importedRoles,
             List<RoleRepresentation> existingRoles
     ) {
-        if (importConfigProperties.getRemoteState().isEnabled()) {
+//        if (importConfigProperties.getRemoteState().isEnabled()) {
             List<String> realmRolesInState = stateService.getRealmRoles();
 
             // ignore all object there are not in state
             existingRoles = existingRoles.stream()
                     .filter(role -> realmRolesInState.contains(role.getName()))
                     .collect(Collectors.toList());
-        }
+//        }
 
         Set<String> importedRealmRoles = importedRoles.stream()
                 .map(RoleRepresentation::getName)
@@ -295,14 +295,14 @@ public class RoleImportService {
     }
 
     private List<RoleRepresentation> getManagedClientRoles(String client, List<RoleRepresentation> existingRoles) {
-        if (importConfigProperties.getRemoteState().isEnabled()) {
-            List<String> clientRolesInState = stateService.getClientRoles(client);
-            // ignore all object there are not in state
-            return existingRoles.stream()
-                    .filter(role -> clientRolesInState.contains(role.getName()))
-                    .collect(Collectors.toList());
-        } else {
-            return existingRoles;
-        }
+//        if (importConfigProperties.getRemoteState().isEnabled()) {
+        List<String> clientRolesInState = stateService.getClientRoles(client);
+        // ignore all object there are not in state
+        return existingRoles.stream()
+                .filter(role -> clientRolesInState.contains(role.getName()))
+                .collect(Collectors.toList());
+//        } else {
+//            return existingRoles;
+//        }
     }
 }

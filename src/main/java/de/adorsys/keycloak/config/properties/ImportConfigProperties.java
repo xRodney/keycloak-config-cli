@@ -44,9 +44,6 @@ public interface ImportConfigProperties {
     @WithName("managed")
     ImportManagedProperties getManaged();
 
-    @WithName("remote-state")
-    ImportRemoteStateProperties getRemoteState();
-
     @SuppressWarnings("unused")
     @Value.Immutable
     interface ImportManagedProperties {
@@ -124,18 +121,5 @@ public interface ImportConfigProperties {
 
         @WithName("skip-attributes-for-federated-user")
         boolean isSkipAttributesForFederatedUser();
-    }
-
-    @SuppressWarnings("unused")
-    @Value.Immutable
-    interface ImportRemoteStateProperties {
-        @WithName("enabled")
-        boolean isEnabled();
-
-        @WithName("encryption-key")
-        String getEncryptionKey();
-
-        @WithName("encryption-salt")
-        String getEncryptionSalt();
     }
 }

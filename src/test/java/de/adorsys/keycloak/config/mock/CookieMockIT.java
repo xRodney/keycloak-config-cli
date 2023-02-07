@@ -22,7 +22,6 @@ package de.adorsys.keycloak.config.mock;
 
 import de.adorsys.keycloak.config.AbstractImportTest;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
-import de.adorsys.keycloak.config.properties.ImmutableImportRemoteStateProperties;
 import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
 import de.adorsys.keycloak.config.test.util.KeycloakMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -68,10 +67,6 @@ class CookieMockIT extends AbstractImportTest {
         );
 
         configPropertiesProvider.editConfig(config -> ImmutableImportConfigProperties.builder().from(config)
-                .remoteState(ImmutableImportRemoteStateProperties.builder().from(config.getRemoteState())
-                        .isEnabled(false)
-                        .build()
-                )
                 .build()
         );
     }

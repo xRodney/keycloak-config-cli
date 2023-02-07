@@ -54,10 +54,6 @@ public class StateService {
     }
 
     public void doImport(RealmImport realmImport) {
-        if (!importConfigProperties.getRemoteState().isEnabled()) {
-            return;
-        }
-
         setRealmRoles(realmImport);
         setClientRoles(realmImport);
         setClients(realmImport);
