@@ -28,15 +28,9 @@ import org.immutables.value.Value;
 @SuppressWarnings({"java:S107"})
 @Value.Immutable
 public interface ImportConfigProperties {
-    String REALM_STATE_ATTRIBUTE_COMMON_PREFIX = "de.adorsys.keycloak.config";
-    String REALM_CHECKSUM_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".import-checksum-{0}";
-    String REALM_STATE_ATTRIBUTE_PREFIX_KEY = REALM_STATE_ATTRIBUTE_COMMON_PREFIX + ".state-{0}-{1}";
 
     @WithName("validate")
     boolean isValidate();
-
-    @WithName("var-substitution")
-    ImportVarSubstitutionProperties getVarSubstitution();
 
     @WithName("behaviors")
     ImportBehaviorsProperties getBehaviors();
@@ -89,25 +83,6 @@ public interface ImportConfigProperties {
         public enum ImportManagedPropertiesValues {
             FULL, NO_DELETE
         }
-    }
-
-    @SuppressWarnings("unused")
-    @Value.Immutable
-    interface ImportVarSubstitutionProperties {
-        @WithName("enabled")
-        boolean isEnabled();
-
-        @WithName("nested")
-        boolean isNested();
-
-        @WithName("undefined-is-error")
-        boolean isUndefinedIsError();
-
-        @WithName("prefix")
-        String getPrefix();
-
-        @WithName("suffix")
-        String getSuffix();
     }
 
     @SuppressWarnings("unused")

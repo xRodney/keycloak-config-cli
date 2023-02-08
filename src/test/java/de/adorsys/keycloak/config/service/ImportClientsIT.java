@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
-import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.util.VersionUtil;
 import io.quarkus.test.junit.QuarkusTest;
@@ -40,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -2623,14 +2621,6 @@ class ImportClientsIT extends AbstractImportIT {
                 .filter(f -> f.getAlias().equals(flowAlias))
                 .findFirst()
                 .orElse(null);
-    }
-
-    private Map<String, String> getRealmState(String realmName) {
-        return keycloakRepository.getRealmAttributes(realmName)
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().startsWith(ImportConfigProperties.REALM_STATE_ATTRIBUTE_COMMON_PREFIX))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private void createRemoteManagedClientResource(String realm, String clientId, String clientSecret, ResourceRepresentation resource) {

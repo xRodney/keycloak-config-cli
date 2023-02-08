@@ -24,7 +24,6 @@ import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.extensions.LdapExtension;
 import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
-import de.adorsys.keycloak.config.properties.ImmutableImportVarSubstitutionProperties;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,10 +63,6 @@ class ImportUserFederationIT extends AbstractImportIT {
                 .behaviors(ImmutableImportBehaviorsProperties.builder().from(config.getBehaviors())
                         .isSyncUserFederation(true)
                         .isSkipAttributesForFederatedUser(true)
-                        .build()
-                )
-                .varSubstitution(ImmutableImportVarSubstitutionProperties.builder().from(config.getVarSubstitution())
-                        .isEnabled(true)
                         .build()
                 )
                 .build());

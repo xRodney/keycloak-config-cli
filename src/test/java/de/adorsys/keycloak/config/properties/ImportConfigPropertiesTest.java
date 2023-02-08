@@ -50,11 +50,11 @@ class ImportConfigPropertiesTest {
 //        assertThat(properties.getFiles().getLocations(), contains("other"));
 //        assertThat(properties.getFiles().getExcludes(), contains("exclude1", "exclude2"));
 //        assertThat(properties.getFiles().isIncludeHiddenFiles(), is(true));
-        assertThat(properties.getVarSubstitution().isEnabled(), is(true));
-        assertThat(properties.getVarSubstitution().isNested(), is(false));
-        assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));
-        assertThat(properties.getVarSubstitution().getPrefix(), is("${"));
-        assertThat(properties.getVarSubstitution().getSuffix(), is("}"));
+//        assertThat(properties.getVarSubstitution().isEnabled(), is(true));
+//        assertThat(properties.getVarSubstitution().isNested(), is(false));
+//        assertThat(properties.getVarSubstitution().isUndefinedIsError(), is(false));
+//        assertThat(properties.getVarSubstitution().getPrefix(), is("${"));
+//        assertThat(properties.getVarSubstitution().getSuffix(), is("}"));
 //        assertThat(properties.getRemoteState().isEnabled(), is(false));
 //        assertThat(properties.getRemoteState().getEncryptionKey(), is("password"));
 //        assertThat(properties.getRemoteState().getEncryptionSalt(), is("0123456789ABCDEFabcdef"));
@@ -82,11 +82,6 @@ class ImportConfigPropertiesTest {
         public Map<String, String> getConfigOverrides() {
             return Map.ofEntries(
                     Map.entry("import.validate", "false"),
-                    Map.entry("import.var-substitution.enabled", "true"),
-                    Map.entry("import.var-substitution.nested", "false"),
-                    Map.entry("import.var-substitution.undefined-is-error", "false"),
-                    Map.entry("import.var-substitution.prefix", "$${"),
-                    Map.entry("import.var-substitution.suffix", "}"),
                     Map.entry("import.managed.authentication-flow", "no-delete"),
                     Map.entry("import.managed.group", "no-delete"),
                     Map.entry("import.managed.required-action", "no-delete"),
