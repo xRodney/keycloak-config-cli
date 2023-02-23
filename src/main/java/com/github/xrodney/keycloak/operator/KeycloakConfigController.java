@@ -97,12 +97,12 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @Override
     @ActivateRequestContext
     public UpdateControl<Realm> reconcile(Realm resource, Context context) {
+        DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
         try {
             importConfigPropertiesProvider.editConfig(config -> mergeConfig(resource.getSpec().getImportProperties(), config));
             keycloakProvider.editProperties(config -> mergeKeycloakConnection(resource, config));
 
             log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
-            DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
 
             RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
@@ -118,7 +118,7 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
             return UpdateControl.updateStatus(resource);
         } catch (Exception e) {
             log.error("Error while execute createOrUpdateResource", e);
-            resource.setStatus(errorStatus(e));
+            resource.setStatus(errorStatus(status, e));
 
             return UpdateControl.updateStatus(resource);
         }
@@ -129,8 +129,7 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     }
 
     @NotNull
-    private static DefaultStatus errorStatus(Exception e) {
-        DefaultStatus status = new DefaultStatus();
+    private static DefaultStatus errorStatus(DefaultStatus status, Exception e) {
         status.setState(DefaultStatus.State.ERROR);
         if (e instanceof RuntimeException) {
             status.setException((RuntimeException) e);
