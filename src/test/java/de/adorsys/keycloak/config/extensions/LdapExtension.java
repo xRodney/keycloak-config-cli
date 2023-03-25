@@ -20,66 +20,57 @@
 
 package de.adorsys.keycloak.config.extensions;
 
-import com.unboundid.ldap.listener.InMemoryDirectoryServer;
-import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
-import com.unboundid.ldap.listener.InMemoryListenerConfig;
-import com.unboundid.ldif.LDIFReader;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.utility.MountableFile;
 
-import java.io.InputStream;
-
-import static de.adorsys.keycloak.config.AbstractImportIT.LDAP_HOST;
-import static de.adorsys.keycloak.config.AbstractImportIT.LDAP_PORT;
-
-// https://gist.github.com/peterkeller/6d9993b440c4f0bf0cffc71b595df1bb
 public class LdapExtension implements BeforeAllCallback, AfterAllCallback {
+    public static int LDAP_PORT = 389;
+    public static String LDAP_HOST = "ldap.internal";
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapExtension.class);
     public final String ldif;
     public final String baseDN;
     public final String bindDN;
     public final String password;
-    private InMemoryDirectoryServer server;
 
-    public LdapExtension(String baseDN, String ldif, String bindDN, String password) {
+    private GenericContainer<?> container;
+
+    public LdapExtension(String baseDN, String ldif, String bindDN, String password, Network network) {
         this.ldif = ldif;
         this.baseDN = baseDN;
         this.bindDN = bindDN;
         this.password = password;
+
+        container = new GenericContainer<>(new ImageFromDockerfile()
+                .withFileFromClasspath("Dockerfile", "embedded-ldap.Dockerfile"))
+                .withCopyFileToContainer(MountableFile.forClasspathResource(ldif), "/etc/ldap.ldif")
+                .withEnv("LDAP_LDIF_FILE", "/etc/ldap.ldif")
+                .withEnv("baseDN", baseDN)
+                .withEnv("port", String.valueOf(LDAP_PORT))
+                .withEnv("additionalBindDN", bindDN)
+                .withEnv("additionalBindPassword", password)
+                .withNetworkAliases(LDAP_HOST)
+                .withNetwork(network)
+                .withExposedPorts(LDAP_PORT);
     }
 
     @Override
-    public void beforeAll(final ExtensionContext context) throws Exception {
-        try (final InputStream inputStream = LdapExtension.class.getResourceAsStream(ldif)) {
-            LOG.info("LDAP server starting...");
-            final InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig(baseDN);
-            config.setSchema(null); // must be set or initialization fails with LDAPException
-            config.setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("LDAP", LDAP_PORT));
-            if (bindDN != null) {
-                config.addAdditionalBindCredentials(bindDN, password);
-            }
-
-            final LDIFReader reader = new LDIFReader(inputStream);
-            server = new InMemoryDirectoryServer(config);
-            server.add("dn: dc=example,dc=org", "objectClass: domain", "objectClass: top", "dc: example");
-            server.importFromLDIF(false, reader);
-
-            server.startListening();
-            LOG.info("LDAP server started. Listen on port " + server.getListenPort());
-            if (System.getProperty("JUNIT_LDAP_HOST") == null) {
-                System.setProperty("JUNIT_LDAP_HOST", LDAP_HOST);
-            }
-            System.setProperty("JUNIT_LDAP_PORT", String.valueOf(server.getListenPort()));
-            LOG.info("Using LDAP properties {}:{}", System.getProperty("JUNIT_LDAP_HOST"), System.getProperty("JUNIT_LDAP_PORT"));
-        }
+    public void beforeAll(final ExtensionContext context) {
+        LOG.info("LDAP server starting...");
+        container.start();
+        LOG.info("LDAP server started. Listen on port " + LDAP_PORT + ", external localhost:"
+                + container.getFirstMappedPort());
     }
 
     @Override
     public void afterAll(final ExtensionContext context) {
-        server.shutDown(true);
+        container.stop();
     }
 }

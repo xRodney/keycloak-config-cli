@@ -235,7 +235,7 @@
             "entryUUID"
           ],
           "connectionUrl": [
-            "ldap://host.testcontainers.internal:33389"
+            "ldap://ldap.internal:389"
           ],
           "allowKerberosAuthentication": [
             "false"

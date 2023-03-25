@@ -20,88 +20,21 @@
 
 package de.adorsys.keycloak.config;
 
-import de.adorsys.keycloak.config.extensions.ContainerLogsExtension;
-import de.adorsys.keycloak.config.util.VersionUtil;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.ToStringConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-
-@ExtendWith(ContainerLogsExtension.class)
 abstract public class AbstractImportIT extends AbstractImportTest {
-    // config for LdapExtension
-    public static int LDAP_PORT = 33389;
-    public static String LDAP_HOST = "host.testcontainers.internal";
-
-    public static final ToStringConsumer KEYCLOAK_CONTAINER_LOGS = new ToStringConsumer();
-
-    @Container
-    public static final GenericContainer<?> KEYCLOAK_CONTAINER;
 
     protected static final String KEYCLOAK_VERSION = System.getProperty("keycloak.version");
     protected static final String KEYCLOAK_IMAGE = System.getProperty("keycloak.dockerImage", "quay.io/keycloak/keycloak");
     protected static final String KEYCLOAK_TAG_SUFFIX = System.getProperty("keycloak.dockerTagSuffix", "");
-    protected static final String KEYCLOAK_LOG_LEVEL = System.getProperty("keycloak.loglevel", "INFO");
 
-    static {
-        Testcontainers.exposeHostPorts(LDAP_PORT);
+    public static final Network NETWORK = Network.newNetwork();
 
-        KEYCLOAK_CONTAINER = new GenericContainer<>(DockerImageName.parse(KEYCLOAK_IMAGE + ":" + KEYCLOAK_VERSION + KEYCLOAK_TAG_SUFFIX))
-                .withExposedPorts(8080)
-                .withEnv("KEYCLOAK_USER", "admin")
-                .withEnv("KEYCLOAK_PASSWORD", "admin123")
-                .withEnv("KEYCLOAK_LOGLEVEL", KEYCLOAK_LOG_LEVEL)
-                .withEnv("ROOT_LOGLEVEL", "ERROR")
-                // keycloak-x
-                .withEnv("KEYCLOAK_ADMIN", "admin")
-                .withEnv("KEYCLOAK_ADMIN_PASSWORD", "admin123")
-                .withEnv("QUARKUS_PROFILE", "dev")
-                .withExtraHost("host.docker.internal", "host-gateway")
-                .waitingFor(Wait.forHttp("/"))
-                .withStartupTimeout(Duration.ofSeconds(300));
+    @RegisterExtension
+    public static KeycloakExtension keycloakExtension = new KeycloakExtension(NETWORK,
+            DockerImageName.parse(KEYCLOAK_IMAGE + ":" + KEYCLOAK_VERSION + KEYCLOAK_TAG_SUFFIX));
 
-        boolean isLegacyDistribution = KEYCLOAK_CONTAINER.getDockerImageName().contains("legacy")
-                || (VersionUtil.lt(KEYCLOAK_VERSION, "17") && !KEYCLOAK_CONTAINER.getDockerImageName().contains("keycloak-x"));
-
-        List<String> command = new ArrayList<>();
-
-        if (isLegacyDistribution) {
-            command.add("-c");
-            command.add("standalone.xml");
-            command.add("-Dkeycloak.profile.feature.admin_fine_grained_authz=enabled");
-            command.add("-Dkeycloak.profile.feature.declarative_user_profile=enabled");
-        } else {
-            KEYCLOAK_CONTAINER.setCommand("start-dev");
-            command.add("start-dev");
-            command.add("--features");
-            command.add("admin-fine-grained-authz,declarative-user-profile");
-        }
-
-        if (System.getProperties().getOrDefault("skipContainerStart", "false").equals("false")) {
-            KEYCLOAK_CONTAINER.setCommand(command.toArray(new String[0]));
-            KEYCLOAK_CONTAINER.start();
-            KEYCLOAK_CONTAINER.followOutput(KEYCLOAK_CONTAINER_LOGS);
-
-            // KEYCLOAK_CONTAINER.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("\uD83D\uDC33 [" + KEYCLOAK_CONTAINER.getDockerImageName() + "]")));
-            System.setProperty("keycloak.user", KEYCLOAK_CONTAINER.getEnvMap().get("KEYCLOAK_USER"));
-            System.setProperty("keycloak.password", KEYCLOAK_CONTAINER.getEnvMap().get("KEYCLOAK_PASSWORD"));
-            var baseUrl = String.format(
-                    "http://%s:%d", KEYCLOAK_CONTAINER.getContainerIpAddress(), KEYCLOAK_CONTAINER.getMappedPort(8080)
-            );
-            //System.setProperty("keycloak.baseUrl", baseUrl);
-
-            if (isLegacyDistribution) {
-                System.setProperty("keycloak.url", baseUrl + "/auth/");
-            } else {
-                System.setProperty("keycloak.url", baseUrl);
-            }
-        }
-    }
 }

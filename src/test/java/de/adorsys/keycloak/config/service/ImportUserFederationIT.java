@@ -47,8 +47,8 @@ import static org.hamcrest.core.Is.is;
 class ImportUserFederationIT extends AbstractImportIT {
     @RegisterExtension
     final static LdapExtension ldapExtension = new LdapExtension(
-            "dc=example,dc=org", "/embedded-ldap.ldif", "cn=admin,dc=example,dc=org", "admin123"
-    );
+            "dc=example,dc=org", "/embedded-ldap.ldif", "cn=admin,dc=example,dc=org", "admin123",
+            NETWORK);
 
     private static final String REALM_NAME = "realmWithLdap";
     private static final String REALM_NAME_WITHOUT_FEDERATION = "realmWithoutLdap";
