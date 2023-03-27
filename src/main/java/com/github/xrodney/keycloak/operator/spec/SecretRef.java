@@ -20,62 +20,59 @@
 
 package com.github.xrodney.keycloak.operator.spec;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class SecretRef {
-    private String name;
-    private String namespace;
-    private String key;
-    private String immediateValue;
+    private final String name;
+    private final String namespace;
+    private final String key;
+    private final String immediateValue;
+
+    @JsonCreator
+    SecretRef(@JsonProperty("name") String name,
+              @JsonProperty("namespace") String namespace,
+              @JsonProperty("key") String key,
+              @JsonProperty("immediateValue") String immediateValue) {
+        this.name = name;
+        this.namespace = namespace;
+        this.key = key;
+        this.immediateValue = immediateValue;
+    }
 
     public static SecretRef ref(String name, String key) {
-        SecretRef ref = new SecretRef();
-        ref.setName(name);
-        ref.setKey(key);
-        return ref;
+        return new SecretRef(name, null, key, null);
     }
 
     public static SecretRef ref(String namespace, String name, String key) {
-        SecretRef ref = new SecretRef();
-        ref.setNamespace(namespace);
-        ref.setName(name);
-        ref.setKey(key);
-        return ref;
+        return new SecretRef(name, namespace, key, null);
     }
 
     public static SecretRef immediate(String value) {
-        SecretRef ref = new SecretRef();
-        ref.setImmediateValue(value);
-        return ref;
+        return new SecretRef(null, null, null, value);
+    }
+
+    public SecretRef withDefaultNamespace(String defaultNamespace) {
+        if (immediateValue != null || namespace != null) {
+            return this;
+        } else {
+            return ref(defaultNamespace, name, key);
+        }
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getNamespace() {
         return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     public String getKey() {
         return key;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public String getImmediateValue() {
         return immediateValue;
-    }
-
-    public void setImmediateValue(String immediateValue) {
-        this.immediateValue = immediateValue;
     }
 }
