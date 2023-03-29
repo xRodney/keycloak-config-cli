@@ -37,10 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.WebApplicationException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.ws.rs.WebApplicationException;
 
 import static de.adorsys.keycloak.config.properties.ImportConfigProperties.ImportManagedProperties.ImportManagedPropertiesValues.FULL;
 import static java.lang.Boolean.TRUE;
@@ -86,7 +86,16 @@ public class ClientImportService {
         if (importConfigProperties.getManaged().getClient() == FULL) {
             deleteClientsMissingInImport(realmImport, clients);
         }
-        createOrUpdateClients(realmImport, clients);
+        createOrUpdateClients(realmImport.getRealm(), clients);
+    }
+
+    public void doImport(String realmName, ClientRepresentation client) {
+        createOrUpdateClients(realmName, List.of(client));
+        updateClientAuthenticationFlowBindingOverrides(realmName, List.of(client));
+    }
+
+    public void delete(String realmName, ClientRepresentation client) {
+        clientRepository.remove(realmName, client);
     }
 
     public void doImportDependencies(RealmImport realmImport) {
@@ -95,14 +104,14 @@ public class ClientImportService {
             return;
         }
 
-        updateClientAuthenticationFlowBindingOverrides(realmImport, clients);
+        updateClientAuthenticationFlowBindingOverrides(realmImport.getRealm(), clients);
     }
 
     private void createOrUpdateClients(
-            RealmImport realmImport,
+            String realmName,
             List<ClientRepresentation> clients
     ) {
-        Consumer<ClientRepresentation> loop = client -> createOrUpdateClient(realmImport, client);
+        Consumer<ClientRepresentation> loop = client -> createOrUpdateClient(realmName, client);
         //if (importConfigProperties.isParallel()) {
         //    clients.parallelStream().forEach(loop);
         //} else {
@@ -138,10 +147,9 @@ public class ClientImportService {
     }
 
     private void createOrUpdateClient(
-            RealmImport realmImport,
+            String realmName,
             ClientRepresentation client
     ) {
-        String realmName = realmImport.getRealm();
 
         // https://github.com/keycloak/keycloak/blob/74695c02423345dab892a0808bf9203c3f92af7c/server-spi-private/src/main/java/org/keycloak/models/utils/RepresentationToModel.java#L2878-L2881
         if (importConfigProperties.isValidate()
@@ -174,7 +182,8 @@ public class ClientImportService {
             updateClientIfNeeded(realmName, client, existingClient.get());
         } else {
             logger.debug("Create client '{}' in realm '{}'", getClientIdentifier(client), realmName);
-            createClient(realmName, client);
+            String id = createClient(realmName, client);
+            client.setId(id);
         }
     }
 
@@ -195,11 +204,11 @@ public class ClientImportService {
         }
     }
 
-    private void createClient(String realmName, ClientRepresentation client) {
+    private String createClient(String realmName, ClientRepresentation client) {
         ClientRepresentation clientToImport = CloneUtil.deepClone(
                 client, ClientRepresentation.class, propertiesWithDependencies
         );
-        clientRepository.create(realmName, clientToImport);
+        return clientRepository.create(realmName, clientToImport);
     }
 
     private boolean isClientEqual(
@@ -256,11 +265,9 @@ public class ClientImportService {
     }
 
     private void updateClientAuthenticationFlowBindingOverrides(
-            RealmImport realmImport,
+            String realmName,
             List<ClientRepresentation> clients
     ) {
-        String realmName = realmImport.getRealm();
-
         for (ClientRepresentation client : clients) {
             ClientRepresentation existingClient;
             if (client.getClientId() != null) {

@@ -21,13 +21,14 @@
 package com.github.xrodney.keycloak.operator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RealmRef {
     private final String name;
     private final String namespace;
 
     @JsonCreator
-    public RealmRef(String name, String namespace) {
+    public RealmRef(@JsonProperty("name") String name, @JsonProperty("namespace") String namespace) {
         this.name = name;
         this.namespace = namespace;
     }

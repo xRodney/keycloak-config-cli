@@ -1,17 +1,21 @@
 package com.github.xrodney.keycloak.operator.service;
 
-import com.github.xrodney.keycloak.operator.spec.*;
+import com.github.xrodney.keycloak.operator.spec.KeycloakConnection;
+import com.github.xrodney.keycloak.operator.spec.Realm;
+import com.github.xrodney.keycloak.operator.spec.RealmDependentSpec;
+import com.github.xrodney.keycloak.operator.spec.RealmRef;
 import de.adorsys.keycloak.config.configuration.ImportConfigPropertiesProvider;
 import de.adorsys.keycloak.config.properties.ImmutableKeycloakConfigProperties;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import io.fabric8.kubernetes.client.CustomResource;
+import org.keycloak.representations.idm.RealmRepresentation;
 
 import javax.enterprise.context.control.ActivateRequestContext;
 import javax.inject.Singleton;
+import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 @Singleton
 public class CurrentRealmService {
@@ -36,14 +40,14 @@ public class CurrentRealmService {
     }
 
     @ActivateRequestContext
-    public <S extends DefaultStatus, R extends RealmDependentSpec, T extends CustomResource<R, S>> T
-    runWithRealm(T resource, UnaryOperator<T> run) {
+    public <T extends CustomResource<? extends RealmDependentSpec, ?>, C> C
+    runWithRealm(T resource, Function<RealmRepresentation, C> run) {
 
         var realm = realmsManager.loadRealmOrThrow(getRealmRef(resource));
         importConfigPropertiesProvider.editConfig(config -> mergeConfig(realm.getSpec().getImportProperties(), config));
         keycloakProvider.editProperties(config -> mergeKeycloakConnection(realm, config));
 
-        return run.apply(resource);
+        return run.apply(realm.getSpec().getRealm());
     }
 
     private ImportConfigProperties mergeConfig(ImportConfigProperties realmConfig, ImportConfigProperties globalConfig) {

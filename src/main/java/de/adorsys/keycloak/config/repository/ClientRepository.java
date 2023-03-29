@@ -37,13 +37,13 @@ import org.keycloak.representations.idm.authorization.ScopeRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 @Service
 public class ClientRepository {
@@ -112,9 +112,9 @@ public class ClientRepository {
         return clientResource.getSecret().getValue();
     }
 
-    public void create(String realmName, ClientRepresentation client) {
+    public String create(String realmName, ClientRepresentation client) {
         try (Response response = getResource(realmName).create(client)) {
-            CreatedResponseUtil.getCreatedId(response);
+            return CreatedResponseUtil.getCreatedId(response);
         } catch (WebApplicationException error) {
             String errorMessage = ResponseUtil.getErrorMessage(error);
 
