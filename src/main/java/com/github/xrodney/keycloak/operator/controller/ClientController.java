@@ -28,13 +28,11 @@ import com.github.xrodney.keycloak.operator.spec.DefaultStatus;
 import de.adorsys.keycloak.config.service.ClientImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
 import io.javaoperatorsdk.operator.api.reconciler.*;
-import org.jetbrains.annotations.NotNull;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.control.ActivateRequestContext;
-import javax.ws.rs.WebApplicationException;
 
 @ControllerConfiguration
 //@GradualRetry()
@@ -98,41 +96,13 @@ public class ClientController implements Reconciler<Client>, Cleaner<Client> {
                 client.setId(status.getExternalId());
                 clientImportService.doImport(realm.getRealm(), client);
 
-                status.setState(DefaultStatus.State.SUCCESS);
-                status.setMessage("Successful import");
-                status.setExternalId(client.getId());
-                resource.setStatus(status);
-
+                status.success(client.getId());
                 return UpdateControl.updateStatus(resource);
             } catch (Exception e) {
                 log.error("Error while execute createOrUpdateResource", e);
-                resource.setStatus(errorStatus(resource.getStatus(), e));
-
+                status.failure(e);
                 return UpdateControl.updateStatus(resource);
             }
         });
-    }
-
-    @NotNull
-    private static DefaultStatus errorStatus(DefaultStatus status, Exception e) {
-        status.setState(DefaultStatus.State.ERROR);
-        if (e instanceof RuntimeException) {
-            status.setException((RuntimeException) e);
-        }
-
-        String message = e.getMessage();
-        if (e instanceof WebApplicationException) {
-            WebApplicationException wae = (WebApplicationException) e;
-            try {
-                if (wae.getResponse().hasEntity()) {
-                    String entity = wae.getResponse().readEntity(String.class);
-                    message += ": " + entity;
-                }
-            } catch (Exception ignore) {
-                // no op
-            }
-        }
-        status.setMessage(message);
-        return status;
     }
 }

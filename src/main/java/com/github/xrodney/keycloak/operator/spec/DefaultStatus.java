@@ -25,9 +25,10 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.PrinterColumn;
 import org.jetbrains.annotations.Nullable;
 
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 
 public class DefaultStatus {
     @PrinterColumn
@@ -62,6 +63,33 @@ public class DefaultStatus {
 
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    public void success(String externalId) {
+        setState(DefaultStatus.State.SUCCESS);
+        setMessage("Successful import");
+        setExternalId(externalId);
+    }
+
+    public void failure(Exception e) {
+        setState(DefaultStatus.State.ERROR);
+        if (e instanceof RuntimeException) {
+            setException((RuntimeException) e);
+        }
+
+        String message = e.getMessage();
+        if (e instanceof WebApplicationException) {
+            WebApplicationException wae = (WebApplicationException) e;
+            try {
+                if (wae.getResponse().hasEntity()) {
+                    String entity = wae.getResponse().readEntity(String.class);
+                    message += ": " + entity;
+                }
+            } catch (Exception ignore) {
+                // no op
+            }
+        }
+        setMessage(message);
     }
 
     @NotNull
