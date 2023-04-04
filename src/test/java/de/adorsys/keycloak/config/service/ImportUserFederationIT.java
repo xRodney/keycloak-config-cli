@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
 import de.adorsys.keycloak.config.extensions.LdapExtension;
 import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
@@ -48,7 +49,7 @@ class ImportUserFederationIT extends AbstractImportIT {
     @RegisterExtension
     final static LdapExtension ldapExtension = new LdapExtension(
             "dc=example,dc=org", "/embedded-ldap.ldif", "cn=admin,dc=example,dc=org", "admin123",
-            NETWORK);
+            KeycloakExtension.NETWORK);
 
     private static final String REALM_NAME = "realmWithLdap";
     private static final String REALM_NAME_WITHOUT_FEDERATION = "realmWithoutLdap";

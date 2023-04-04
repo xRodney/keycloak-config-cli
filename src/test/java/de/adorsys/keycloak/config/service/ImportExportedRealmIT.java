@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -39,7 +40,7 @@ class ImportExportedRealmIT extends AbstractImportIT {
     private static final String REALM_NAME = "master";
 
     ImportExportedRealmIT() {
-        this.resourcePath = "import-files/exported-realm/" + KEYCLOAK_VERSION;
+        this.resourcePath = "import-files/exported-realm/" + KeycloakExtension.KEYCLOAK_VERSION;
     }
 
     @Test

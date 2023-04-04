@@ -23,6 +23,7 @@ package de.adorsys.keycloak.config.service;
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
 import de.adorsys.keycloak.config.properties.ImmutableImportBehaviorsProperties;
 import de.adorsys.keycloak.config.properties.ImmutableImportConfigProperties;
 import de.adorsys.keycloak.config.util.VersionUtil;
@@ -231,7 +232,7 @@ class ImportRolesIT extends AbstractImportIT {
 
         assertThat(userRealmLevelRoles, hasItem("my_realm_role"));
 
-        if (VersionUtil.ge(KEYCLOAK_VERSION, "13")) {
+        if (VersionUtil.ge(KeycloakExtension.KEYCLOAK_VERSION, "13")) {
             assertThat(userRealmLevelRoles, hasItem("default-roles-" + REALM_NAME.toLowerCase()));
         }
     }

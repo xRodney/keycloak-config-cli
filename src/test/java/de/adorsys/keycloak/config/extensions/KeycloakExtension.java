@@ -37,16 +37,21 @@ import java.util.List;
 
 public class KeycloakExtension implements TestWatcher, BeforeAllCallback, AfterAllCallback, ExtensionContext.Store.CloseableResource {
 
+    public static final String KEYCLOAK_VERSION = System.getProperty("keycloak.version");
+    public static final String KEYCLOAK_IMAGE = System.getProperty("keycloak.dockerImage", "quay.io/keycloak/keycloak");
+    public static final String KEYCLOAK_TAG_SUFFIX = System.getProperty("keycloak.dockerTagSuffix", "");
+    public static final Network NETWORK = Network.newNetwork();
+    public static final String KEYCLOAK_LOG_LEVEL = System.getProperty("keycloak.loglevel", "DEBUG");
+
     public final ToStringConsumer logsConsumer = new ToStringConsumer();
-    protected static final String KEYCLOAK_LOG_LEVEL = System.getProperty("keycloak.loglevel", "DEBUG");
 
     private final GenericContainer<?> container;
     private static boolean outputLog = false;
     private static boolean started = false;
     private final DockerImageName imageName;
 
-    public KeycloakExtension(Network network, DockerImageName imageName) {
-        this.imageName = imageName;
+    public KeycloakExtension() {
+        this.imageName = DockerImageName.parse(KeycloakExtension.KEYCLOAK_IMAGE + ":" + KeycloakExtension.KEYCLOAK_VERSION + KeycloakExtension.KEYCLOAK_TAG_SUFFIX);
         this.container = new GenericContainer<>(imageName)
                 .withExposedPorts(8080)
                 .withEnv("KEYCLOAK_USER", "admin")
@@ -59,7 +64,7 @@ public class KeycloakExtension implements TestWatcher, BeforeAllCallback, AfterA
                 .withEnv("QUARKUS_PROFILE", "dev")
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .waitingFor(Wait.forHttp("/"))
-                .withNetwork(network)
+                .withNetwork(NETWORK)
                 .withStartupTimeout(Duration.ofSeconds(300));
     }
 

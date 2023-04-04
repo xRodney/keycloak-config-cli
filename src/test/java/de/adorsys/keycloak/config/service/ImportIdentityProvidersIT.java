@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.service;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
 import de.adorsys.keycloak.config.util.VersionUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Order;
@@ -583,7 +584,7 @@ class ImportIdentityProvidersIT extends AbstractImportIT {
         assertThat(updatedIdentityProviderConfig.get("useJwksUrl"), is("true"));
 
         List<IdentityProviderMapperRepresentation> identityProviderMappers = createdRealm.getIdentityProviderMappers();
-        if (VersionUtil.ge(KEYCLOAK_VERSION, "12")) {
+        if (VersionUtil.ge(KeycloakExtension.KEYCLOAK_VERSION, "12")) {
             assertThat(identityProviderMappers, empty());
         } else {
             assertThat(identityProviderMappers, nullValue());
@@ -601,7 +602,7 @@ class ImportIdentityProvidersIT extends AbstractImportIT {
         assertThat(createdRealm.isEnabled(), is(true));
 
         List<IdentityProviderRepresentation> identityProviders = createdRealm.getIdentityProviders();
-        if (VersionUtil.ge(KEYCLOAK_VERSION, "12")) {
+        if (VersionUtil.ge(KeycloakExtension.KEYCLOAK_VERSION, "12")) {
             assertThat(identityProviders, empty());
         } else {
             assertThat(identityProviders, nullValue());

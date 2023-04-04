@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.adorsys.keycloak.config.AbstractImportIT;
 import de.adorsys.keycloak.config.exception.ImportProcessingException;
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
+import de.adorsys.keycloak.config.extensions.KeycloakExtension;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.util.VersionUtil;
 import io.quarkus.test.junit.QuarkusTest;
@@ -247,7 +248,7 @@ class ImportClientsIT extends AbstractImportIT {
         assertThat(createdClient.getWebOrigins(), is(containsInAnyOrder("https://moped-client.org/webOrigin")));
 
         // client secret on this place is always null for keycloak versions lower than 19...
-        if (VersionUtil.ge(KEYCLOAK_VERSION, "19")) {
+        if (VersionUtil.ge(KeycloakExtension.KEYCLOAK_VERSION, "19")) {
             assertThat(createdClient.getSecret(), is("changed-special-client-secret"));
         } else {
             assertThat(createdClient.getSecret(), is(nullValue()));
@@ -427,7 +428,7 @@ class ImportClientsIT extends AbstractImportIT {
     void shouldNotUpdateRealmUpdateScopeMappingsWithError() throws IOException {
         var foundImport = getFirstImport("07_update_realm__try-to-update_protocol-mapper.json");
 
-        if (VersionUtil.lt(KEYCLOAK_VERSION, "11")) {
+        if (VersionUtil.lt(KeycloakExtension.KEYCLOAK_VERSION, "11")) {
             ImportProcessingException thrown = assertImportFails(ImportProcessingException.class, foundImport);
 
             assertThat(thrown.getMessage(), matchesPattern(".*Cannot update protocolMapper 'BranchCodeMapper' for client '.*' in realm 'realmWithClients': .*"));
