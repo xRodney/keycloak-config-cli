@@ -25,7 +25,7 @@ public class RealmsManager {
                 .get();
 
         if (realm == null) {
-            throw new IllegalStateException(String.format("Realm named %s does not exist in namespace %s.",
+            throw new IllegalStateException(String.format("Realm named '%s' does not exist in namespace '%s'.",
                     realmRef.getName(), realmRef.getNamespace()));
         }
 

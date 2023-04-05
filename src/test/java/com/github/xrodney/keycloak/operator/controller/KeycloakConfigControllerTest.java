@@ -1,20 +1,17 @@
 package com.github.xrodney.keycloak.operator.controller;
 
 import com.github.xrodney.keycloak.operator.spec.Realm;
-import com.github.xrodney.keycloak.operator.spec.RealmSpec;
 import com.github.xrodney.keycloak.operator.spec.SecretRef;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
+import com.github.xrodney.keycloak.operator.utils.TestDataGenerator;
 import io.javaoperatorsdk.operator.Operator;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.keycloak.representations.idm.RealmRepresentation;
 
 import javax.inject.Inject;
-import java.util.Map;
+import javax.ws.rs.NotFoundException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /*
  *
@@ -34,65 +31,85 @@ class KeycloakConfigControllerTest extends AbstractOperatorTest {
 
     @BeforeEach
     void setUp() {
+        super.setUp();
         operator = new Operator(kubernetesClient);
         operator.register(realmController);
     }
 
     @Test
     void shouldCreateRealmUsingEmbeddedConnectionPassword() {
-        var realm = new Realm();
-        realm.setMetadata(new ObjectMetaBuilder().withName(REALM).build());
-
-        RealmSpec spec = new RealmSpec();
-        spec.setKeycloakConnection(getKeycloakConnection());
-        var representation = new RealmRepresentation();
-        representation.setRealm(REALM);
-        spec.setRealm(representation);
-        realm.setSpec(spec);
-
-        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE);
-        var created = resource.create();
+        Realm realm = TestDataGenerator.createDefaultRealm("realm1", getKeycloakConnection());
+        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE).create();
 
         operator.start();
-        awaitResourceSuccess(created);
+        awaitResourceSuccess(resource);
         operator.stop();
 
-        var export = keycloakProvider.getInstance().realm(REALM).partialExport(false, false);
+        var export = keycloakProvider.getInstance().realm("realm1").partialExport(false, false);
         assertNotNull(export);
     }
 
     @Test
     void shouldCreateRealmUsingReferencedConnectionPassword() {
-        var realm = new Realm();
-        realm.setMetadata(new ObjectMetaBuilder().withName(REALM).build());
-
-        RealmSpec spec = new RealmSpec();
         var connection = getKeycloakConnection();
+        Realm realm = TestDataGenerator.createDefaultRealm("realm2", connection);
 
-        var secret = new SecretBuilder().withNewMetadata()
-                .withNamespace(NAMESPACE)
-                .withName("mysecret")
-                .endMetadata()
-                .withStringData(Map.of("mykey", connection.getPasswordSecret().getImmediateValue()))
-                .build();
-        kubernetesClient.resource(secret).create();
-        var secretRef = SecretRef.ref("mysecret", "mykey");
+        var secretRef = SecretRef.ref(NAMESPACE, "test2", "mykey");
+        var secret = TestDataGenerator.secretFromReference(secretRef, connection.getPasswordSecret().getImmediateValue());
         connection.setPasswordSecret(secretRef);
-        spec.setKeycloakConnection(connection);
 
-        var representation = new RealmRepresentation();
-        representation.setRealm(REALM);
-        spec.setRealm(representation);
-        realm.setSpec(spec);
-
-        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE);
-        var created = resource.create();
+        kubernetesClient.resource(secret).create();
+        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE).create();
 
         operator.start();
-        awaitResourceSuccess(created);
+        awaitResourceSuccess(resource);
         operator.stop();
 
-        var export = keycloakProvider.getInstance().realm(REALM).partialExport(false, false);
+        var export = keycloakProvider.getInstance().realm("realm2").partialExport(false, false);
         assertNotNull(export);
+    }
+
+    @Test
+    void shouldFailWhenRealmReferencesNonExistentSecret() {
+        var connection = getKeycloakConnection();
+        Realm realm = TestDataGenerator.createDefaultRealm("realm3", connection);
+
+        var secretRef = SecretRef.ref(NAMESPACE, "test3", "mykey");
+        connection.setPasswordSecret(secretRef);
+
+        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE).create();
+
+        operator.start();
+        var awaited = awaitResourceError(resource);
+        operator.stop();
+
+        assertEquals("The linked credential secret 'test3' in namespace 'testnamespace' does not exist.",
+                awaited.getStatus().getMessage());
+
+
+        assertThrows(NotFoundException.class, () -> keycloakProvider.getInstance().realm("realm3")
+                .partialExport(false, false));
+    }
+
+    @Test
+    void shouldFailWhenRealmReferencedSecretDoesNotContainKey() {
+        var connection = getKeycloakConnection();
+        Realm realm = TestDataGenerator.createDefaultRealm("realm4", connection);
+
+        var secretRef = SecretRef.ref(NAMESPACE, "test4", "mykey");
+        var secret = TestDataGenerator.secretFromReference(secretRef, connection.getPasswordSecret().getImmediateValue());
+        connection.setPasswordSecret(SecretRef.ref(NAMESPACE, "test4", "myotherkey"));
+
+        kubernetesClient.resource(secret).create();
+        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE).create();
+
+        operator.start();
+        var awaited = awaitResourceError(resource);
+        operator.stop();
+
+        assertEquals("The linked credential secret 'test4' in namespace 'testnamespace' does not contain key 'myotherkey'.", awaited.getStatus().getMessage());
+
+        assertThrows(NotFoundException.class, () -> keycloakProvider.getInstance().realm("realm4")
+                .partialExport(false, false));
     }
 }

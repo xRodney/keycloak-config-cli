@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.quarkus.test.junit.QuarkusMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
@@ -36,8 +37,7 @@ public class AbstractOperatorTest {
     static void setUpClass() {
         kubernetes.start();
         var kubeconfig = Config.fromKubeconfig(kubernetes.getKubeconfig());
-        kubernetesClient = new KubernetesClientBuilder().withConfig(kubeconfig).build();
-        QuarkusMock.installMockForType(kubernetesClient, KubernetesClient.class);
+        var kubernetesClient = new KubernetesClientBuilder().withConfig(kubeconfig).build();
 
         kubernetesClient.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).endMetadata().build()).create();
 
@@ -46,19 +46,40 @@ public class AbstractOperatorTest {
 
     }
 
-    protected void awaitResourceSuccess(CustomResource<?, ? extends DefaultStatus> resource) {
-        Awaitility.await().atMost(Duration.ofMinutes(10))
-                .pollInterval(Duration.ofSeconds(1))
-                .failFast(() -> getState(resource) == DefaultStatus.State.ERROR)
-                .until(() -> getState(resource) == DefaultStatus.State.SUCCESS);
-    }
-
-    protected <T extends CustomResource<?, ? extends DefaultStatus>> DefaultStatus.State getState(T resource) {
+    private static <T extends CustomResource<?, ? extends DefaultStatus>> T reload(T resource) {
         var metadata = resource.getMetadata();
         var instance = (T) kubernetesClient.resources(resource.getClass())
                 .inNamespace(metadata.getNamespace())
                 .withName(metadata.getName())
                 .get();
+        return instance;
+    }
+
+    @BeforeEach
+    void setUp() {
+        var kubeconfig = Config.fromKubeconfig(kubernetes.getKubeconfig());
+        kubernetesClient = new KubernetesClientBuilder().withConfig(kubeconfig).build();
+        QuarkusMock.installMockForType(kubernetesClient, KubernetesClient.class);
+    }
+
+    protected void awaitResourceSuccess(CustomResource<?, ? extends DefaultStatus> resource) {
+        Awaitility.await().atMost(Duration.ofMinutes(2))
+                .pollInterval(Duration.ofSeconds(1))
+                .failFast(() -> getState(resource) == DefaultStatus.State.ERROR)
+                .until(() -> getState(resource) == DefaultStatus.State.SUCCESS);
+    }
+
+    protected <T extends CustomResource<?, ? extends DefaultStatus>> T awaitResourceError(T resource) {
+        Awaitility.await().atMost(Duration.ofMinutes(2))
+                .pollInterval(Duration.ofSeconds(1))
+                .failFast(() -> getState(resource) == DefaultStatus.State.SUCCESS)
+                .until(() -> getState(resource) == DefaultStatus.State.ERROR);
+
+        return reload(resource);
+    }
+
+    protected <T extends CustomResource<?, ? extends DefaultStatus>> DefaultStatus.State getState(T resource) {
+        T instance = reload(resource);
 
         if (instance == null) {
             return null;

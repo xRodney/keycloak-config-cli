@@ -57,7 +57,8 @@ public class ClientController implements Reconciler<Client>, Cleaner<Client> {
         log.info("Execution cleanup for: {}", resource.getMetadata().getName());
         reconciledResourceProvider.setResource(resource);
 
-        return currentRealmService.runWithRealm(resource, realm -> {
+        try {
+            var realm = currentRealmService.runWithRealm(resource);
             String deployedId = resource.getStatus() != null ? resource.getStatus().getExternalId() : null;
             if (deployedId == null) {
                 log.info("Not deployed? {}", resource.getMetadata().getName());
@@ -67,15 +68,13 @@ public class ClientController implements Reconciler<Client>, Cleaner<Client> {
             var client = resource.getSpec().getClient();
             client.setId(deployedId);
 
-            try {
-                clientImportService.delete(realm.getRealm(), resource.getSpec().getClient());
-                return DeleteControl.defaultDelete();
+            clientImportService.delete(realm.getStatus().getExternalId(), resource.getSpec().getClient());
+            return DeleteControl.defaultDelete();
 
-            } catch (Exception e) {
-                log.error("Error while execute cleanup", e);
-                return DeleteControl.noFinalizerRemoval();
-            }
-        });
+        } catch (Exception e) {
+            log.error("Error while execute cleanup", e);
+            return DeleteControl.noFinalizerRemoval();
+        }
     }
 
     @Override
@@ -85,24 +84,23 @@ public class ClientController implements Reconciler<Client>, Cleaner<Client> {
         var spec = resource.getSpec();
         var metadata = resource.getMetadata();
 
-        return currentRealmService.runWithRealm(resource, realm -> {
-            try {
-                log.info("Execution createOrUpdateResource for: {}", metadata.getName());
+        try {
+            var realm = currentRealmService.runWithRealm(resource);
+            log.info("Execution createOrUpdateResource for: {}", metadata.getName());
 
-                ClientRepresentation client = CloneUtil.deepClone(spec.getClient(), ClientRepresentation.class);
-                if (spec.getClientSecretRef() != null) {
-                    client.setSecret(secretsManager.readPassword(spec.getClientSecretRef()));
-                }
-                client.setId(status.getExternalId());
-                clientImportService.doImport(realm.getRealm(), client);
-
-                status.success(client.getId());
-                return UpdateControl.updateStatus(resource);
-            } catch (Exception e) {
-                log.error("Error while execute createOrUpdateResource", e);
-                status.failure(e);
-                return UpdateControl.updateStatus(resource);
+            ClientRepresentation client = CloneUtil.deepClone(spec.getClient(), ClientRepresentation.class);
+            if (spec.getClientSecretRef() != null) {
+                client.setSecret(secretsManager.readPassword(spec.getClientSecretRef()));
             }
-        });
+            client.setId(status.getExternalId());
+            clientImportService.doImport(realm.getStatus().getExternalId(), client);
+
+            status.success(client.getId());
+            return UpdateControl.updateStatus(resource);
+        } catch (Exception e) {
+            log.error("Error while execute createOrUpdateResource", e);
+            status.failure(e);
+            return UpdateControl.updateStatus(resource);
+        }
     }
 }

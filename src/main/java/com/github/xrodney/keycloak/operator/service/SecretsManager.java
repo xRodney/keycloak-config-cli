@@ -32,14 +32,16 @@ public class SecretsManager {
                 .get();
 
         if (credentialSecret == null) {
-            throw new IllegalStateException("The linked credential secret does not exist");
+            throw new IllegalStateException("The linked credential secret '" + secretRef.getName() + "'" +
+                    " in namespace '" + secretRef.getNamespace() + "' does not exist.");
         }
 
         log.info("Successfully read the credential secret");
         String password = credentialSecret.getData().get(secretRef.getKey());
 
         if (password == null) {
-            throw new IllegalStateException("The linked credential secret does not contain password");
+            throw new IllegalStateException("The linked credential secret '" + secretRef.getName() + "'" +
+                    " in namespace '" + secretRef.getNamespace() + "' does not contain key '" + secretRef.getKey() + "'.");
         }
         password = new String(Base64.getDecoder().decode(password));
         log.info("Successfully read password from the credential secret");

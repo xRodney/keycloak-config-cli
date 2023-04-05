@@ -52,24 +52,23 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @ActivateRequestContext
     public DeleteControl cleanup(Realm resource, Context context) {
         log.info("Execution cleanup for: {}", resource.getMetadata().getName());
-        reconciledResourceProvider.setResource(resource);
+        try {
+            reconciledResourceProvider.setResource(resource);
+            currentRealmService.runWithRealm(resource);
 
-        return currentRealmService.runWithRealm(resource, () -> {
             String deployedRealm = resource.getStatus() != null ? resource.getStatus().getExternalId() : null;
             if (deployedRealm == null) {
                 log.info("Not deployed? {}", resource.getMetadata().getName());
                 return DeleteControl.defaultDelete();
             }
 
-            try {
-                realmImportService.deleteRealm(deployedRealm);
-                return DeleteControl.defaultDelete();
+            realmImportService.deleteRealm(deployedRealm);
+            return DeleteControl.defaultDelete();
 
-            } catch (Exception e) {
-                log.error("Error while execute cleanup", e);
-                return DeleteControl.noFinalizerRemoval();
-            }
-        });
+        } catch (Exception e) {
+            log.error("Error while execute cleanup", e);
+            return DeleteControl.noFinalizerRemoval();
+        }
     }
 
     @Override
@@ -77,23 +76,23 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     public UpdateControl<Realm> reconcile(Realm resource, Context context) {
         DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
 
-        return currentRealmService.runWithRealm(resource, () -> {
-            try {
-                log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
+        try {
+            currentRealmService.runWithRealm(resource);
 
-                RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
+            log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
-                String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
-                        ? resource.getStatus().getExternalId() : realmImport.getRealm();
-                realmImportService.doImport(deployedRealm, realmImport);
+            RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
-                status.success(realmImport.getRealm());
-                return UpdateControl.updateStatus(resource);
-            } catch (Exception e) {
-                log.error("Error while execute createOrUpdateResource", e);
-                status.failure(e);
-                return UpdateControl.updateStatus(resource);
-            }
-        });
+            String deployedRealm = resource.getStatus() != null && resource.getStatus().getExternalId() != null
+                    ? resource.getStatus().getExternalId() : realmImport.getRealm();
+            realmImportService.doImport(deployedRealm, realmImport);
+
+            status.success(realmImport.getRealm());
+            return UpdateControl.updateStatus(resource);
+        } catch (Exception e) {
+            log.error("Error while execute createOrUpdateResource", e);
+            status.failure(e);
+            return UpdateControl.updateStatus(resource);
+        }
     }
 }

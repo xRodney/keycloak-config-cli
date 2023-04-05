@@ -10,12 +10,8 @@ import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
 import io.fabric8.kubernetes.client.CustomResource;
-import org.keycloak.representations.idm.RealmRepresentation;
 
-import javax.enterprise.context.control.ActivateRequestContext;
 import javax.inject.Singleton;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Singleton
 public class CurrentRealmService {
@@ -31,23 +27,15 @@ public class CurrentRealmService {
         this.realmsManager = realmsManager;
     }
 
-    @ActivateRequestContext
-    public <R> R runWithRealm(Realm realm, Supplier<R> run) {
+    public void runWithRealm(Realm realm) {
         importConfigPropertiesProvider.editConfig(config -> mergeConfig(realm.getSpec().getImportProperties(), config));
         keycloakProvider.editProperties(config -> mergeKeycloakConnection(realm, config));
-
-        return run.get();
     }
 
-    @ActivateRequestContext
-    public <T extends CustomResource<? extends RealmDependentSpec, ?>, C> C
-    runWithRealm(T resource, Function<RealmRepresentation, C> run) {
-
+    public <T extends CustomResource<? extends RealmDependentSpec, ?>> Realm runWithRealm(T resource) {
         var realm = realmsManager.loadRealmOrThrow(getRealmRef(resource));
-        importConfigPropertiesProvider.editConfig(config -> mergeConfig(realm.getSpec().getImportProperties(), config));
-        keycloakProvider.editProperties(config -> mergeKeycloakConnection(realm, config));
-
-        return run.apply(realm.getSpec().getRealm());
+        runWithRealm(realm);
+        return realm;
     }
 
     private ImportConfigProperties mergeConfig(ImportConfigProperties realmConfig, ImportConfigProperties globalConfig) {
