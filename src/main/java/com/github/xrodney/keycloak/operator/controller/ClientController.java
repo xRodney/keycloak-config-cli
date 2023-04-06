@@ -80,7 +80,7 @@ public class ClientController implements Reconciler<Client>, Cleaner<Client> {
     @Override
     @ActivateRequestContext
     public UpdateControl<Client> reconcile(Client resource, Context context) {
-        DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
+        DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource);
         var spec = resource.getSpec();
         var metadata = resource.getMetadata();
 

@@ -21,12 +21,12 @@
 package com.github.xrodney.keycloak.operator.configuration;
 
 import com.github.xrodney.keycloak.operator.spec.DefaultStatus;
+import com.github.xrodney.keycloak.operator.spec.KeycloakResource;
 import io.fabric8.kubernetes.client.CustomResource;
 
-import java.util.Objects;
-import java.util.function.Supplier;
 import javax.enterprise.context.RequestScoped;
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 @RequestScoped
 public class ReconciledResourceProvider {
@@ -36,17 +36,15 @@ public class ReconciledResourceProvider {
         return resource;
     }
 
-    public void setResource(CustomResource<?, ? extends DefaultStatus> resource) {
+    public void setResource(KeycloakResource<?, ?> resource) {
         Objects.requireNonNull(resource, "'resource' cannot be null");
         Objects.requireNonNull(resource.getStatus(), "'resource.getStatus()' cannot be null");
         this.resource = resource;
     }
 
-    public <S extends DefaultStatus> S setResourceWithStatus(CustomResource<?, S> resource, Supplier<S> defaultStatusSupplier) {
+    public <S extends DefaultStatus> S setResourceWithStatus(KeycloakResource<?, S> resource) {
         Objects.requireNonNull(resource, "'resource' cannot be null");
-        if (resource.getStatus() == null) {
-            resource.setStatus(defaultStatusSupplier.get());
-        }
+        resource.initDefaultStatus();
         this.resource = resource;
         return resource.getStatus();
     }

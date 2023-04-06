@@ -23,6 +23,7 @@ package com.github.xrodney.keycloak.operator.spec;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.PrinterColumn;
+import io.javaoperatorsdk.operator.api.ObservedGenerationAwareStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -30,7 +31,7 @@ import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultStatus {
+public class DefaultStatus extends ObservedGenerationAwareStatus {
     @PrinterColumn
     private String externalId;
     @PrinterColumn

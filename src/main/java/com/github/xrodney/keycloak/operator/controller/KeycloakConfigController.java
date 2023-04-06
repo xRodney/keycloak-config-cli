@@ -74,7 +74,7 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @Override
     @ActivateRequestContext
     public UpdateControl<Realm> reconcile(Realm resource, Context context) {
-        DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource, DefaultStatus::new);
+        DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource);
 
         try {
             currentRealmService.runWithRealm(resource);
