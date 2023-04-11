@@ -26,6 +26,7 @@ public class AbstractOperatorTest {
     protected static final ApiServerContainer<?> kubernetes = new ApiServerContainer<>();
     protected static final String REALM = "testrealm";
     protected static final String NAMESPACE = "testnamespace";
+    protected static final long MIN_DATE = 0;
 
     @RegisterExtension
     protected static KeycloakExtension keycloakExtension = new KeycloakExtension();
@@ -63,22 +64,27 @@ public class AbstractOperatorTest {
     }
 
     protected void awaitResourceSuccess(CustomResource<?, ? extends DefaultStatus> resource) {
+        awaitResourceSuccess(resource, MIN_DATE);
+    }
+
+    protected void awaitResourceSuccess(CustomResource<?, ? extends DefaultStatus> resource, long lastObservedUpdate) {
         Awaitility.await().atMost(Duration.ofMinutes(2))
                 .pollInterval(Duration.ofSeconds(1))
-                .failFast(() -> getState(resource) == DefaultStatus.State.ERROR)
-                .until(() -> getState(resource) == DefaultStatus.State.SUCCESS);
+                .failFast(() -> getStateIfChanged(resource, lastObservedUpdate) == DefaultStatus.State.ERROR)
+                .until(() -> getStateIfChanged(resource, lastObservedUpdate) == DefaultStatus.State.SUCCESS);
     }
 
     protected <T extends CustomResource<?, ? extends DefaultStatus>> T awaitResourceError(T resource) {
         Awaitility.await().atMost(Duration.ofMinutes(2))
                 .pollInterval(Duration.ofSeconds(1))
-                .failFast(() -> getState(resource) == DefaultStatus.State.SUCCESS)
-                .until(() -> getState(resource) == DefaultStatus.State.ERROR);
+                .failFast(() -> getStateIfChanged(resource, MIN_DATE) == DefaultStatus.State.SUCCESS)
+                .until(() -> getStateIfChanged(resource, MIN_DATE) == DefaultStatus.State.ERROR);
 
         return reload(resource);
     }
 
-    protected <T extends CustomResource<?, ? extends DefaultStatus>> DefaultStatus.State getState(T resource) {
+    protected <T extends CustomResource<?, ? extends DefaultStatus>> DefaultStatus.State getStateIfChanged(
+            T resource, long lastObservedUpdate) {
         T instance = reload(resource);
 
         if (instance == null) {
@@ -86,6 +92,9 @@ public class AbstractOperatorTest {
         }
         var status = instance.getStatus();
         if (status == null) {
+            return null;
+        }
+        if (status.getLastUpdate() == lastObservedUpdate) {
             return null;
         }
         return status.getState();

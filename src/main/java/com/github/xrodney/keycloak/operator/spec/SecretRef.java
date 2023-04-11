@@ -22,6 +22,7 @@ package com.github.xrodney.keycloak.operator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.Nullable;
 
 public class SecretRef {
     private final String name;
@@ -50,6 +51,13 @@ public class SecretRef {
 
     public static SecretRef immediate(String value) {
         return new SecretRef(null, null, null, value);
+    }
+
+    public static boolean isValidRef(@Nullable SecretRef ref) {
+        return ref != null
+                && ref.getName() != null
+                && ref.getKey() != null
+                && ref.getImmediateValue() == null;
     }
 
     public SecretRef withDefaultNamespace(String defaultNamespace) {

@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.WebApplicationException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,8 @@ public class DefaultStatus extends ObservedGenerationAwareStatus {
     private State state = State.UNKNOWN;
     @PrinterColumn
     private String message;
+    @PrinterColumn
+    private long lastUpdate;
     @JsonIgnore
     private RuntimeException exception;
     private Map<String, List<String>> status;
@@ -70,10 +73,12 @@ public class DefaultStatus extends ObservedGenerationAwareStatus {
         setState(DefaultStatus.State.SUCCESS);
         setMessage("Successful import");
         setExternalId(externalId);
+        setLastUpdate();
     }
 
     public void failure(Exception e) {
         setState(DefaultStatus.State.ERROR);
+        setLastUpdate();
         if (e instanceof RuntimeException) {
             setException((RuntimeException) e);
         }
@@ -114,6 +119,14 @@ public class DefaultStatus extends ObservedGenerationAwareStatus {
 
     public void setException(RuntimeException exception) {
         this.exception = exception;
+    }
+
+    public long getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate() {
+        this.lastUpdate = Instant.now().toEpochMilli();
     }
 
     public enum State {

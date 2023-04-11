@@ -24,22 +24,35 @@ import com.github.xrodney.keycloak.operator.configuration.ReconciledResourceProv
 import com.github.xrodney.keycloak.operator.service.CurrentRealmService;
 import com.github.xrodney.keycloak.operator.spec.DefaultStatus;
 import com.github.xrodney.keycloak.operator.spec.Realm;
+import com.github.xrodney.keycloak.operator.spec.SecretRef;
 import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.service.RealmImportService;
 import de.adorsys.keycloak.config.util.CloneUtil;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.javaoperatorsdk.operator.api.config.informer.InformerConfiguration;
 import io.javaoperatorsdk.operator.api.reconciler.*;
+import io.javaoperatorsdk.operator.processing.event.ResourceID;
+import io.javaoperatorsdk.operator.processing.event.source.EventSource;
+import io.javaoperatorsdk.operator.processing.event.source.informer.InformerEventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.control.ActivateRequestContext;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ControllerConfiguration
 //@GradualRetry()
-public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Realm> {
+public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Realm>, EventSourceInitializer<Realm> {
     private static final Logger log = LoggerFactory.getLogger(KeycloakConfigController.class);
     private final CurrentRealmService currentRealmService;
     private final RealmImportService realmImportService;
     private final ReconciledResourceProvider reconciledResourceProvider;
+
+    private final DependentResourcesMapper<Realm, Secret> dependentSecrets
+            = new DependentResourcesMapper<>(this::dependsOnSecrets);
 
     public KeycloakConfigController(CurrentRealmService currentRealmService,
                                     RealmImportService realmImportService, ReconciledResourceProvider reconciledResourceProvider) {
@@ -52,6 +65,7 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @ActivateRequestContext
     public DeleteControl cleanup(Realm resource, Context context) {
         log.info("Execution cleanup for: {}", resource.getMetadata().getName());
+        dependentSecrets.onDelete(resource);
         try {
             reconciledResourceProvider.setResource(resource);
             currentRealmService.runWithRealm(resource);
@@ -74,12 +88,12 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
     @Override
     @ActivateRequestContext
     public UpdateControl<Realm> reconcile(Realm resource, Context context) {
+        log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
+        dependentSecrets.onCreateOrUpdate(resource);
         DefaultStatus status = reconciledResourceProvider.setResourceWithStatus(resource);
 
         try {
             currentRealmService.runWithRealm(resource);
-
-            log.info("Execution createOrUpdateResource for: {}", resource.getMetadata().getName());
 
             RealmImport realmImport = CloneUtil.deepClone(resource.getSpec().getRealm(), RealmImport.class);
 
@@ -94,5 +108,27 @@ public class KeycloakConfigController implements Reconciler<Realm>, Cleaner<Real
             status.failure(e);
             return UpdateControl.updateStatus(resource);
         }
+    }
+
+    @Override
+    public Map<String, EventSource> prepareEventSources(EventSourceContext<Realm> context) {
+        var configMapEventSource =
+                new InformerEventSource<>(InformerConfiguration.from(Secret.class, context)
+                        .withSecondaryToPrimaryMapper(dependentSecrets)
+                        .withPrimaryToSecondaryMapper(dependentSecrets)
+                        .build(),
+                        context);
+        return EventSourceInitializer.nameEventSources(configMapEventSource);
+    }
+
+    private Set<ResourceID> dependsOnSecrets(Realm realm) {
+        var connection = realm.getSpec().getKeycloakConnection();
+        return Stream.of(
+                        connection.getClientSecretSecret(),
+                        connection.getPasswordSecret())
+                .filter(SecretRef::isValidRef)
+                .map(ref -> ref.withDefaultNamespace(realm.getMetadata().getNamespace()))
+                .map(ref -> new ResourceID(ref.getName(), ref.getNamespace()))
+                .collect(Collectors.toSet());
     }
 }

@@ -112,4 +112,26 @@ class KeycloakConfigControllerTest extends AbstractOperatorTest {
         assertThrows(NotFoundException.class, () -> keycloakProvider.getInstance().realm("realm4")
                 .partialExport(false, false));
     }
+
+    @Test
+    void shouldRetryWhenRealmReferencesSecretThatIsCreatedAtLaterTime() {
+        var connection = getKeycloakConnection();
+        Realm realm = TestDataGenerator.createDefaultRealm("realm5", connection);
+
+        var secretRef = SecretRef.ref(NAMESPACE, "test5", "mykey");
+        var secret = TestDataGenerator.secretFromReference(secretRef, connection.getPasswordSecret().getImmediateValue());
+        connection.setPasswordSecret(secretRef);
+
+        var resource = kubernetesClient.resource(realm).inNamespace(NAMESPACE).create();
+
+        operator.start();
+        var awaited = awaitResourceError(resource);
+        assertEquals("The linked credential secret 'test5' in namespace 'testnamespace' does not exist.",
+                awaited.getStatus().getMessage());
+
+        kubernetesClient.resource(secret).create();
+
+        awaitResourceSuccess(resource, awaited.getStatus().getLastUpdate());
+        operator.stop();
+    }
 }
